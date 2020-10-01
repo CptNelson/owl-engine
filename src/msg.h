@@ -30,8 +30,8 @@ namespace game
     class MessageBus
     {
     public:
-        MessageBus(){};
-        ~MessageBus(){};
+        MessageBus() {};
+        ~MessageBus() {};
 
         //This should be called when Bus is initialized.
         //Add all the components that should get messages
@@ -54,7 +54,6 @@ namespace game
         //first message in the queue will be send first and then popped out
         void notify()
         {
-            std::cout << "empty ";
             while (!messages.empty())
             {
                 std::cout << " not empty ";
@@ -64,6 +63,10 @@ namespace game
                 }
                 messages.pop();
             }
+        }
+        int msgSize()
+        {
+            return messages.size();
         }
 
     private:
@@ -76,16 +79,16 @@ namespace game
     {
     public:
         //When constructed, it adds it's message receiver function to message bus
-        BusNode(MessageBus msgBus)
+        BusNode(MessageBus* msgBus)
         {
-            this->messageBus = std::make_unique<MessageBus>(msgBus);
+            this->messageBus = msgBus;
             this->messageBus->addReceiver(this->getNotifyFunc());
         }
 
         virtual void update(){};
 
     protected:
-        std::unique_ptr<MessageBus> messageBus = nullptr;
+        MessageBus *messageBus;
 
         std::function<void(Message)> getNotifyFunc()
         {
@@ -97,12 +100,6 @@ namespace game
 
         void send(Message msg)
         {
-            if (messageBus)
-            {
-
-                std::cout << " not null ";
-            }
-            std::cout << " send ";
             //std::cout << messageBus;
             messageBus->sendMessage(msg);
         }
