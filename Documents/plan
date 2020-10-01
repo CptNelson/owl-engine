@@ -1,0 +1,95 @@
+https://www.gamasutra.com/blogs/MichaelKissner/20151027/257369/Writing_a_Game_Engine_from_Scratch__Part_1_Messaging.php
+http://gameprogrammingpatterns.com/event-queue.html
+
+
+
+
+
+
+If you are going with a Message Bus type of Engine, concider coding the Console and the Message Bus first. Once those are implemented, you can fake the existence of any System that has not yet been coded. You will have constant control over the entire engine at every stage of developement.
+
+Concider moving on to the GUI next, as well as the needed Draw functionality inside the Framework. A solid GUI paired with the Console will allow you to fake all other Systems even easier. Testing will be a breeze.
+
+Next should be the Framework, at least it's interface. Functionality can follow later.
+
+Finally, move on to the other Systems, including Gameplay.
+
+
+==Step 1. Pinpoint the Needs and Need Nots==
+
+I start the game, a window opens and we have Main Menu
+There is short animation as background
+Main menu has Continue, New Game, Settings and Exit
+They can be choosed with kb or mouse
+They are buttons that look just text. 
+there is music, and SFX when choosing
+
+==BUTTONS==
+    multiple states, clicked, down, up, pressed, disabled
+    these states are presented in graphics as well
+
+== NEW GAME==
+    creation menu. similar to main menu.
+    sliders? numbers and text that can be changed
+    show some game graphics here.
+
+==GAMEPLAY==
+    draw sprites and tilemaps
+        get/set
+        animate
+        change color
+        different sizes
+        flip
+    kb & mouse input
+    music/SFX
+    animations
+    message consoles
+    multiple screens/windows
+    
+==GAME LOOP/UPDATE==
+    detect input
+    draw
+    render
+    Message/Event queue
+
+
+==OTHER==
+    Debugging
+    Logging
+    Loading data
+    saving data
+    Load images/png
+    load audio
+    Audio mixer
+
+
+==========================================================
+
+
+GUI
+    buttons
+    sliders
+    text
+    KB/Mouse input
+    Menu items
+    GUI SFX
+    Message Consoles
+    Screens
+    animations
+
+GRAPHICS
+    draw
+    surfaces
+    screens
+        -multiple screen/surfaces? at the same time that can be swapped
+    render
+        sorting sprites
+    sprites
+    tilemaps
+    animations
+    Load images
+
+ENGINE
+    message queue
+    load/save
+
