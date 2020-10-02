@@ -2,7 +2,8 @@
 #include <memory>
 #include "framework/window.h"
 #include "msg.h"
-#include "framework/texture.h"
+#include "framework/draw.h"
+//#include "framework/text.h"
 #include <SDL2/SDL_ttf.h>
 
 //=========================================================
@@ -11,7 +12,7 @@ const int SCREEN_WIDTH = 1280;
 const int SCREEN_HEIGHT = 720;
 std::unique_ptr<game::MessageBus> messageBus = nullptr;
 std::shared_ptr<SDL_Window> window = nullptr;
-SDL_Renderer *gRenderer = nullptr;
+//SDL_Renderer *gRenderer = nullptr;
 
 bool init()
 {
@@ -29,7 +30,7 @@ bool init()
         return false;
     }
 
-    gRenderer = SDL_CreateRenderer(window.get(), -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    //gRenderer = SDL_CreateRenderer(window.get(), -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
     TTF_Init();
 
@@ -40,8 +41,8 @@ void close()
 {
 
     //Destroy window
-    SDL_DestroyRenderer(gRenderer);
-    gRenderer = nullptr;
+    //SDL_DestroyRenderer(gRenderer);
+    //gRenderer = nullptr;
 
     //Quit SDL subsystems
     TTF_Quit();
@@ -56,6 +57,8 @@ int main(int argc, char *argv[])
         std::cout << "Failed to initialize!" << std::endl;
         return -1;
     }
+
+    auto draw = framework::Draw(window.get());
 
     bool quit = false;
     SDL_Event e;
@@ -72,26 +75,18 @@ int main(int argc, char *argv[])
             }
         }
 
-        SDL_Color textColor = {0, 0, 0};
+        SDL_Color textColor = {100, 110, 100};
+        draw.WriteText("tesetstst", textColor);
+        draw.Update();
 
-        //Fill the surface white
-        //SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0xFF, 0xFF, 0xFF));
-
-        LTexture gTextTexture;
-        gTextTexture.loadFromRenderedText("Testing Testing", textColor, gRenderer);
-
-        //Update the surface
-        //SDL_UpdateWindowSurface(window.get());
-
-        //Clear screen
-        SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
-        SDL_RenderClear(gRenderer);
+        //LTexture gTextTexture;
+        //gTextTexture.loadFromRenderedText("Testing Testing", textColor, gRenderer);
 
         //Render current frame
-        gTextTexture.render((SCREEN_WIDTH - gTextTexture.getWidth()) / 2, (SCREEN_HEIGHT - gTextTexture.getHeight()) / 2, gRenderer);
+        //gTextTexture.render((SCREEN_WIDTH - gTextTexture.getWidth()) / 2, (SCREEN_HEIGHT - gTextTexture.getHeight()) / 2, gRenderer);
 
         //Update screen
-        SDL_RenderPresent(gRenderer);
+        //SDL_RenderPresent(gRenderer);
     }
 
     close();

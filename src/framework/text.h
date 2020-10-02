@@ -13,15 +13,13 @@ class LTexture
 public:
     //Initializes variables
     LTexture();
-
-    //Deallocates memory
     ~LTexture();
 
     //Loads image at specified path
     bool loadFromFile(std::string path);
 
     //Creates image from font string
-    bool loadFromRenderedText(std::string textureText, SDL_Color textColor, SDL_Renderer *gRenderer);
+    SDL_Surface loadFromRenderedText(std::string textureText, SDL_Color textColor, SDL_Renderer *gRenderer);
 
     //Deallocates texture
     void free();
@@ -36,7 +34,7 @@ public:
     void setAlpha(Uint8 alpha);
 
     //Renders texture at given point
-    void render(int x, int y, SDL_Renderer *gRenderer, SDL_Rect *clip = NULL, double angle = 0.0, SDL_Point *center = NULL, SDL_RendererFlip flip = SDL_FLIP_NONE);
+    void render(std::shared_ptr<SDL_Texture> texture, int x, int y, int width, int height, SDL_Renderer *renderer, SDL_Rect *clip = NULL, double angle = 0.0, SDL_Point *center = NULL, SDL_RendererFlip flip = SDL_FLIP_NONE);
 
     //Gets image dimensions
     int getWidth();
@@ -49,7 +47,7 @@ private:
     //Image dimensions
     int mWidth;
     int mHeight;
-    //TTF_Font *font = nullptr;
+    TTF_Font *font = nullptr;
 };
 
 //====================================================================================================
@@ -57,6 +55,7 @@ private:
 LTexture::LTexture()
 {
     //Initialize
+    font = TTF_OpenFont("framework/orkney_regular.ttf", 14);
     mTexture = NULL;
     mWidth = 0;
     mHeight = 0;
@@ -111,12 +110,8 @@ bool LTexture::loadFromFile(std::string path)
 }
 */
 
-bool LTexture::loadFromRenderedText(std::string textureText, SDL_Color textColor, SDL_Renderer *gRenderer)
+SDL_Surface LTexture::loadFromRenderedText(std::string textureText, SDL_Color textColor, SDL_Renderer *gRenderer)
 {
-    //Get rid of preexisting texture
-    free();
-
-    auto font = TTF_OpenFont("framework/orkney_regular.ttf", 14);
     if (!font)
     {
         printf("TTF_OpenFont: %s\n", TTF_GetError());
@@ -126,6 +121,8 @@ bool LTexture::loadFromRenderedText(std::string textureText, SDL_Color textColor
     //Render text surface
     SDL_Surface *textSurface = TTF_RenderText_Solid(font, textureText.c_str(), textColor);
 
+    return *textSurface;
+    /*
     if (textSurface == NULL)
     {
         printf("Unable to render text surface! SDL_ttf Error: %s\n", TTF_GetError());
@@ -153,6 +150,7 @@ bool LTexture::loadFromRenderedText(std::string textureText, SDL_Color textColor
     //Return success
 
     return mTexture != NULL;
+    */
 }
 
 void LTexture::free()
@@ -185,10 +183,11 @@ void LTexture::setAlpha(Uint8 alpha)
     SDL_SetTextureAlphaMod(mTexture, alpha);
 }
 
-void LTexture::render(int x, int y, SDL_Renderer *gRenderer, SDL_Rect *clip, double angle, SDL_Point *center, SDL_RendererFlip flip)
+void LTexture::render(std::shared_ptr<SDL_Texture> texture, int x, int y, int width, int height, SDL_Renderer *renderer, SDL_Rect *clip, double angle, SDL_Point *center, SDL_RendererFlip flip)
 {
     //Set rendering space and render to screen
-    SDL_Rect renderQuad = {x, y, mWidth, mHeight};
+    //std::cout << width << std::endl;
+    SDL_Rect renderQuad = {x, y, width, height};
 
     //Set clip rendering dimensions
     if (clip != NULL)
@@ -198,7 +197,7 @@ void LTexture::render(int x, int y, SDL_Renderer *gRenderer, SDL_Rect *clip, dou
     }
 
     //Render to screen
-    SDL_RenderCopyEx(gRenderer, mTexture, clip, &renderQuad, angle, center, flip);
+    SDL_RenderCopyEx(renderer, texture.get(), clip, &renderQuad, angle, center, flip);
 }
 
 int LTexture::getWidth()
