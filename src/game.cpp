@@ -10,13 +10,13 @@
 
 const int SCREEN_WIDTH = 1280;
 const int SCREEN_HEIGHT = 720;
-std::unique_ptr<game::MessageBus> messageBus = nullptr;
+std::shared_ptr<game::MessageBus> messageBus = nullptr;
 std::shared_ptr<SDL_Window> window = nullptr;
 //SDL_Renderer *gRenderer = nullptr;
 
 bool init()
 {
-    messageBus = std::make_unique<game::MessageBus>();
+    messageBus = std::make_shared<game::MessageBus>();
     if (messageBus == nullptr)
     {
         std::cout << "messageBus creation failed!" << std::endl;
@@ -58,7 +58,12 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    auto draw = framework::Draw(window.get());
+    std::shared_ptr<framework::Draw> draw = std::make_shared<framework::Draw>(window.get());
+    std::shared_ptr<game::Console> console = std::make_shared<game::Console>(messageBus, draw);
+    if (console == nullptr)
+    {
+        std::cout << "error";
+    }
 
     bool quit = false;
     SDL_Event e;
@@ -73,20 +78,30 @@ int main(int argc, char *argv[])
             {
                 quit = true;
             }
+            else if (e.type == SDL_KEYDOWN)
+            {
+                switch (e.key.keysym.sym)
+                {
+                case SDLK_c:
+                    console->openConsole();
+                }
+            }
+
+            //console->openConsole();
+            // draw->WriteText("asdd", {0xFF, 0xFF, 0xFF}, 0, 0);
+            console->update();
+            messageBus->notify();
+            draw->Update();
+
+            //LTexture gTextTexture;
+            //gTextTexture.loadFromRenderedText("Testing Testing", textColor, gRenderer);
+
+            //Render current frame
+            //gTextTexture.render((SCREEN_WIDTH - gTextTexture.getWidth()) / 2, (SCREEN_HEIGHT - gTextTexture.getHeight()) / 2, gRenderer);
+
+            //Update screen
+            //SDL_RenderPresent(gRenderer);
         }
-
-        SDL_Color textColor = {100, 110, 100};
-        draw.WriteText("tesetstst", textColor);
-        draw.Update();
-
-        //LTexture gTextTexture;
-        //gTextTexture.loadFromRenderedText("Testing Testing", textColor, gRenderer);
-
-        //Render current frame
-        //gTextTexture.render((SCREEN_WIDTH - gTextTexture.getWidth()) / 2, (SCREEN_HEIGHT - gTextTexture.getHeight()) / 2, gRenderer);
-
-        //Update screen
-        //SDL_RenderPresent(gRenderer);
     }
 
     close();

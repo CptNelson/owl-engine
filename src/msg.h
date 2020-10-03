@@ -17,7 +17,7 @@ namespace game
             messageEvent = msg;
         }
 
-        std::string getMesssage()
+        std::string getMessage()
         {
             return messageEvent;
         }
@@ -54,7 +54,7 @@ namespace game
         //first message in the queue will be send first and then popped out
         void notify()
         {
-            std::cout << "empty ";
+            // std::cout << "empty ";
             while (!messages.empty())
             {
                 std::cout << " not empty ";
@@ -76,7 +76,7 @@ namespace game
     {
     public:
         //When constructed, it adds it's message receiver function to message bus
-        BusNode(MessageBus *msgBus)
+        BusNode(std::shared_ptr<MessageBus> msgBus)
         {
             this->messageBus = msgBus;
             this->messageBus->addReceiver(this->getNotifyFunc());
@@ -85,7 +85,7 @@ namespace game
         virtual void update(){};
 
     protected:
-        MessageBus *messageBus;
+        std::shared_ptr<MessageBus> messageBus = nullptr;
 
         std::function<void(Message)> getNotifyFunc()
         {
@@ -99,10 +99,9 @@ namespace game
         {
             if (messageBus)
             {
-
-                std::cout << " not null ";
+                std::cout << " not null " << std::endl;
             }
-            std::cout << " send ";
+            std::cout << " send " << std::endl;
             //std::cout << messageBus;
             messageBus->sendMessage(msg);
         }
