@@ -97,12 +97,6 @@ namespace game
 
         void send(Message msg)
         {
-            if (messageBus)
-            {
-                std::cout << " not null " << std::endl;
-            }
-            std::cout << " send " << std::endl;
-            //std::cout << messageBus;
             messageBus->sendMessage(msg);
         }
 

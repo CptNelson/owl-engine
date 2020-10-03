@@ -60,7 +60,8 @@ int main(int argc, char *argv[])
 
     std::shared_ptr<framework::Draw> draw = std::make_shared<framework::Draw>(window.get());
     std::shared_ptr<game::Console> console = std::make_shared<game::Console>(messageBus, draw);
-    if (console == nullptr)
+    std::shared_ptr<game::StartScreen> start = std::make_shared<game::StartScreen>(draw);
+    if (console == nullptr || start == nullptr)
     {
         std::cout << "error";
     }
@@ -74,6 +75,10 @@ int main(int argc, char *argv[])
         //Handle events on queue
         while (SDL_PollEvent(&e) != 0)
         {
+            //frameStart = SDL_GetTicks();
+
+            SDL_RenderClear(draw->renderer.get());
+
             if (e.type == SDL_QUIT)
             {
                 quit = true;
@@ -87,20 +92,10 @@ int main(int argc, char *argv[])
                 }
             }
 
-            //console->openConsole();
-            // draw->WriteText("asdd", {0xFF, 0xFF, 0xFF}, 0, 0);
+            start->drawImage();
             console->update();
             messageBus->notify();
             draw->Update();
-
-            //LTexture gTextTexture;
-            //gTextTexture.loadFromRenderedText("Testing Testing", textColor, gRenderer);
-
-            //Render current frame
-            //gTextTexture.render((SCREEN_WIDTH - gTextTexture.getWidth()) / 2, (SCREEN_HEIGHT - gTextTexture.getHeight()) / 2, gRenderer);
-
-            //Update screen
-            //SDL_RenderPresent(gRenderer);
         }
     }
 

@@ -22,10 +22,12 @@ namespace framework
 
         std::shared_ptr<SDL_Renderer> renderer = nullptr;
         void Update();
-        void CreateTextureFromSurface(SDL_Renderer *renderer, SDL_Surface *surface, int x, int y);
+        void CreateTextureFromSurface(std::shared_ptr<SDL_Renderer> renderer, std::shared_ptr<SDL_Surface> surface, int x, int y);
         void WriteText(std::string text, SDL_Color color, int x, int y);
         void CreateViewport(SDL_Texture *texture, int x, int y, int w, int h);
         void fillTexture(SDL_Texture *texture, int r, int g, int b, int a);
+        void DrawImageFromFile(std::shared_ptr<SDL_Surface> imageSurface, int x, int y);
+        std::shared_ptr<SDL_Surface> loadFromFile(std::string path);
         //SDL_Surface *loadSurface(std::string path)
 
     private:
@@ -42,11 +44,11 @@ namespace framework
         renderer = sdl_shared(SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC));
     };
 
-    void Draw::CreateTextureFromSurface(SDL_Renderer *renderer, SDL_Surface *surface, int x, int y)
+    void Draw::CreateTextureFromSurface(std::shared_ptr<SDL_Renderer> renderer, std::shared_ptr<SDL_Surface> surface, int x, int y)
     {
-        auto texture = sdl_shared(SDL_CreateTextureFromSurface(renderer, surface));
+        auto texture = sdl_shared(SDL_CreateTextureFromSurface(renderer.get(), surface.get()));
 
-        if (texture == NULL)
+        if (texture == nullptr)
         {
             printf("Unable to create texture from rendered text! SDL Error: %s\n", SDL_GetError());
         }
@@ -56,16 +58,43 @@ namespace framework
             width = surface->w;
             height = surface->h;
         }
-        textTexture->render(texture, x, y, width, height, renderer);
+        textTexture->render(texture, x, y, width, height, renderer.get());
+        
     };
+
+    //TODO: move to utils!
+    std::shared_ptr<SDL_Surface> Draw::loadFromFile(std::string path)
+    {
+        //The final texture
+        std::shared_ptr<SDL_Texture> newTexture = nullptr;
+
+        //Load image at specified path
+        std::shared_ptr<SDL_Surface> loadedSurface = sdl_shared(IMG_Load(path.c_str()));
+        if (loadedSurface == nullptr)
+        {
+            printf("Unable to load image %s! SDL_image Error: %s\n", path.c_str(), IMG_GetError());
+        }
+        //Color key image
+        SDL_SetColorKey(loadedSurface.get(), SDL_TRUE, SDL_MapRGB(loadedSurface.get()->format, 0, 0xFF, 0xFF));
+        return loadedSurface;
+
+    }
+
+    void Draw::DrawImageFromFile(std::shared_ptr<SDL_Surface> imageSurface, int x, int y)
+    {
+        //textTexture = nullptr;
+        //textTexture = std::make_shared<LTexture>();
+        //auto imageSurface = textTexture->loadFromFile(path);
+        CreateTextureFromSurface(renderer, imageSurface, x,y);
+    }
 
     void Draw::WriteText(std::string text, SDL_Color color, int x, int y)
     {
         textTexture = nullptr;
         textTexture = std::make_shared<LTexture>();
         // SDL_SetRenderDrawColor(renderer.get(), 50, 200, 30, 0xFF);
-        auto textSurface = textTexture->loadFromRenderedText(text, color, renderer.get());
-        CreateTextureFromSurface(renderer.get(), &textSurface, x, y);
+        auto textSurface = textTexture->loadFromRenderedText(text, color);
+        CreateTextureFromSurface(renderer, textSurface, x, y);
     };
 
     void Draw::Update()
@@ -95,6 +124,38 @@ namespace framework
         SDL_RenderFillRect(renderer.get(), NULL);
     }
 } // namespace framework
+
+//===================================================================================================================================
+
+namespace game
+{
+    class StartScreen
+    {
+    public:
+        StartScreen(const std::shared_ptr<framework::Draw> draw) 
+        {
+            this->draw = draw;
+            image = framework::sdl_shared(draw->loadFromFile("framework/img.png").get());
+            if (image == nullptr)
+            {
+                std::cout << "errror" << std::endl;
+            }
+            
+        };
+        ~StartScreen() {};
+
+        void drawImage()
+        {
+            draw->DrawImageFromFile(image,0,0);
+            
+        }
+
+    private:
+        std::shared_ptr<framework::Draw> draw = nullptr;
+        std::shared_ptr<SDL_Surface> image = nullptr;
+    };
+}
+
 
 //===================================================================================================================================
 
@@ -153,7 +214,6 @@ namespace game
         std::shared_ptr<SDL_Texture> texture = nullptr;
         std::shared_ptr<MessageBus> messageBus = nullptr;
         std::shared_ptr<framework::Draw> draw = nullptr;
-        // std::unique_ptr<std::vector<Message>> msgArray = std::make_unique<std::vector<Message>>();
         std::vector<std::string> msgArray;
 
         void onNotify(Message msg)

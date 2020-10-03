@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string>
 #include <cmath>
+#include "utils.h"
 
 //====================================================================================================
 
@@ -16,10 +17,10 @@ public:
     ~LTexture();
 
     //Loads image at specified path
-    bool loadFromFile(std::string path);
+    SDL_Surface loadFromFile(std::string path);
 
     //Creates image from font string
-    SDL_Surface loadFromRenderedText(std::string textureText, SDL_Color textColor, SDL_Renderer *gRenderer);
+    std::shared_ptr<SDL_Surface> loadFromRenderedText(std::string textureText, SDL_Color textColor);
 
     //Deallocates texture
     void free();
@@ -68,18 +69,15 @@ LTexture::~LTexture()
     free();
 }
 
-/*
-bool LTexture::loadFromFile(std::string path)
-{
-    //Get rid of preexisting texture
-    free();
 
+SDL_Surface LTexture::loadFromFile(std::string path)
+{
     //The final texture
-    SDL_Texture *newTexture = NULL;
+    SDL_Texture *newTexture = nullptr;
 
     //Load image at specified path
     SDL_Surface *loadedSurface = IMG_Load(path.c_str());
-    if (loadedSurface == NULL)
+    if (loadedSurface == nullptr)
     {
         printf("Unable to load image %s! SDL_image Error: %s\n", path.c_str(), IMG_GetError());
     }
@@ -87,9 +85,12 @@ bool LTexture::loadFromFile(std::string path)
     {
         //Color key image
         SDL_SetColorKey(loadedSurface, SDL_TRUE, SDL_MapRGB(loadedSurface->format, 0, 0xFF, 0xFF));
+        return *loadedSurface;
+    }
 
+/*
         //Create texture from surface pixels
-        newTexture = SDL_CreateTextureFromSurface(gRenderer, loadedSurface);
+        newTexture = SDL_CreateTextureFromSurface(renderer, loadedSurface);
         if (newTexture == NULL)
         {
             printf("Unable to create texture from %s! SDL Error: %s\n", path.c_str(), SDL_GetError());
@@ -106,12 +107,13 @@ bool LTexture::loadFromFile(std::string path)
     }
 
     //Return success
-    mTexture = newTexture;
-    return mTexture != NULL;
+    texture = newTexture;
+    return texture != NULL;
+    */
 }
-*/
 
-SDL_Surface LTexture::loadFromRenderedText(std::string textureText, SDL_Color textColor, SDL_Renderer *gRenderer)
+
+std::shared_ptr<SDL_Surface> LTexture::loadFromRenderedText(std::string textureText, SDL_Color textColor)
 {
     if (!font)
     {
@@ -120,8 +122,8 @@ SDL_Surface LTexture::loadFromRenderedText(std::string textureText, SDL_Color te
     }
 
     //Render text surface
-    SDL_Surface *textSurface = TTF_RenderText_Blended(font, textureText.c_str(), textColor);
-    return *textSurface;
+    std::shared_ptr<SDL_Surface> textSurface = framework::sdl_shared(TTF_RenderText_Blended(font, textureText.c_str(), textColor));
+    return textSurface;
 }
 
 void LTexture::free()
@@ -158,7 +160,7 @@ void LTexture::render(std::shared_ptr<SDL_Texture> texture, int x, int y, int wi
 {
     //Set rendering space and render to screen
     //std::cout << width << std::endl;
-    SDL_Rect renderQuad = {x, y, width / 8, height / 8};
+    SDL_Rect renderQuad = {x, y, width, height};
 
     //Set clip rendering dimensions
     if (clip != NULL)
