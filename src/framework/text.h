@@ -69,11 +69,10 @@ LTexture::~LTexture()
     free();
 }
 
-
 SDL_Surface LTexture::loadFromFile(std::string path)
 {
     //The final texture
-    SDL_Texture *newTexture = nullptr;
+    std::shared_ptr<SDL_Texture> newTexture = nullptr;
 
     //Load image at specified path
     SDL_Surface *loadedSurface = IMG_Load(path.c_str());
@@ -88,7 +87,7 @@ SDL_Surface LTexture::loadFromFile(std::string path)
         return *loadedSurface;
     }
 
-/*
+    /*
         //Create texture from surface pixels
         newTexture = SDL_CreateTextureFromSurface(renderer, loadedSurface);
         if (newTexture == NULL)
@@ -111,7 +110,6 @@ SDL_Surface LTexture::loadFromFile(std::string path)
     return texture != NULL;
     */
 }
-
 
 std::shared_ptr<SDL_Surface> LTexture::loadFromRenderedText(std::string textureText, SDL_Color textColor)
 {

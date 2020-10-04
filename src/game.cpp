@@ -72,12 +72,11 @@ int main(int argc, char *argv[])
 
     while (!quit)
     {
+        SDL_RenderClear(draw->renderer.get());
         //Handle events on queue
         while (SDL_PollEvent(&e) != 0)
         {
             //frameStart = SDL_GetTicks();
-
-            SDL_RenderClear(draw->renderer.get());
 
             if (e.type == SDL_QUIT)
             {
@@ -91,12 +90,11 @@ int main(int argc, char *argv[])
                     console->openConsole();
                 }
             }
-
-            start->drawImage();
-            console->update();
-            messageBus->notify();
-            draw->Update();
         }
+        console->update();
+        start->drawImage();
+        messageBus->notify();
+        draw->Update();
     }
 
     close();

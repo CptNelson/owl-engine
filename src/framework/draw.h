@@ -22,17 +22,16 @@ namespace framework
 
         std::shared_ptr<SDL_Renderer> renderer = nullptr;
         void Update();
-        void CreateTextureFromSurface(std::shared_ptr<SDL_Renderer> renderer, std::shared_ptr<SDL_Surface> surface, int x, int y);
+        // wMod and hMod is used to make surfaces smaller, because text is too large
+        void CreateTextureFromSurface(std::shared_ptr<SDL_Renderer> renderer, std::shared_ptr<SDL_Surface> surface, int x, int y, int wMod = 1, int hMod = 1);
         void WriteText(std::string text, SDL_Color color, int x, int y);
         void CreateViewport(SDL_Texture *texture, int x, int y, int w, int h);
         void fillTexture(SDL_Texture *texture, int r, int g, int b, int a);
         void DrawImageFromFile(std::shared_ptr<SDL_Surface> imageSurface, int x, int y);
         std::shared_ptr<SDL_Surface> loadFromFile(std::string path);
-        //SDL_Surface *loadSurface(std::string path)
 
     private:
-        std::shared_ptr<LTexture> textTexture = nullptr;
-        // LTexture textTexture;
+        std::shared_ptr<LTexture> textureObject = std::make_shared<LTexture>();
         int width;
         int height;
     };
@@ -42,9 +41,10 @@ namespace framework
         width = 0;
         height = 0;
         renderer = sdl_shared(SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC));
+        int imgFlags = IMG_INIT_PNG;
     };
 
-    void Draw::CreateTextureFromSurface(std::shared_ptr<SDL_Renderer> renderer, std::shared_ptr<SDL_Surface> surface, int x, int y)
+    void Draw::CreateTextureFromSurface(std::shared_ptr<SDL_Renderer> renderer, std::shared_ptr<SDL_Surface> surface, int x, int y, int wMod, int hMod)
     {
         auto texture = sdl_shared(SDL_CreateTextureFromSurface(renderer.get(), surface.get()));
 
@@ -58,17 +58,12 @@ namespace framework
             width = surface->w;
             height = surface->h;
         }
-        textTexture->render(texture, x, y, width, height, renderer.get());
-        
+        textureObject->render(texture, x, y, width / wMod, height / hMod, renderer.get());
     };
 
     //TODO: move to utils!
     std::shared_ptr<SDL_Surface> Draw::loadFromFile(std::string path)
     {
-        //The final texture
-        std::shared_ptr<SDL_Texture> newTexture = nullptr;
-
-        //Load image at specified path
         std::shared_ptr<SDL_Surface> loadedSurface = sdl_shared(IMG_Load(path.c_str()));
         if (loadedSurface == nullptr)
         {
@@ -77,29 +72,21 @@ namespace framework
         //Color key image
         SDL_SetColorKey(loadedSurface.get(), SDL_TRUE, SDL_MapRGB(loadedSurface.get()->format, 0, 0xFF, 0xFF));
         return loadedSurface;
-
     }
 
     void Draw::DrawImageFromFile(std::shared_ptr<SDL_Surface> imageSurface, int x, int y)
     {
-        //textTexture = nullptr;
-        //textTexture = std::make_shared<LTexture>();
-        //auto imageSurface = textTexture->loadFromFile(path);
-        CreateTextureFromSurface(renderer, imageSurface, x,y);
+        CreateTextureFromSurface(renderer, imageSurface, x, y);
     }
 
     void Draw::WriteText(std::string text, SDL_Color color, int x, int y)
     {
-        textTexture = nullptr;
-        textTexture = std::make_shared<LTexture>();
-        // SDL_SetRenderDrawColor(renderer.get(), 50, 200, 30, 0xFF);
-        auto textSurface = textTexture->loadFromRenderedText(text, color);
-        CreateTextureFromSurface(renderer, textSurface, x, y);
+        auto textSurface = textureObject->loadFromRenderedText(text, color);
+        CreateTextureFromSurface(renderer, textSurface, x, y, 8, 8);
     };
 
     void Draw::Update()
     {
-        //SDL_RenderClear(renderer.get());
         SDL_RenderPresent(renderer.get());
     }
 
@@ -132,30 +119,28 @@ namespace game
     class StartScreen
     {
     public:
-        StartScreen(const std::shared_ptr<framework::Draw> draw) 
+        StartScreen(const std::shared_ptr<framework::Draw> draw)
         {
             this->draw = draw;
-            image = framework::sdl_shared(draw->loadFromFile("framework/img.png").get());
+            image = draw->loadFromFile("framework/img.png");
             if (image == nullptr)
             {
                 std::cout << "errror" << std::endl;
             }
-            
         };
-        ~StartScreen() {};
+        ~StartScreen(){};
 
         void drawImage()
         {
-            draw->DrawImageFromFile(image,0,0);
-            
+            //draw->CreateViewport(image.get(), 0, 0, 1280, 720);
+            draw->DrawImageFromFile(image, 0, 0);
         }
 
     private:
         std::shared_ptr<framework::Draw> draw = nullptr;
         std::shared_ptr<SDL_Surface> image = nullptr;
     };
-}
-
+} // namespace game
 
 //===================================================================================================================================
 
@@ -177,7 +162,6 @@ namespace game
             Message greeting("Hi!");
             send(greeting);
             send(greeting);
-            send(greeting);
         }
 
         void openConsole()
@@ -185,18 +169,28 @@ namespace game
             if (!isOpen)
             {
                 isOpen = true;
+            }
+            else
+            {
+                isOpen = false;
+            }
+        }
+
+        void update()
+        {
+            if (isOpen)
+            {
                 texture = framework::sdl_shared(SDL_CreateTexture(draw->renderer.get(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 200, 180));
                 SDL_SetTextureBlendMode(texture.get(), SDL_BLENDMODE_BLEND);
                 draw->fillTexture(texture.get(), 100, 100, 100, 100);
                 SDL_SetRenderTarget(draw->renderer.get(), NULL);
-                // SDL_SetRenderDrawBlendMode(draw->renderer.get(), SDL_BLENDMODE_BLEND);
-                //       SDL_SetRenderDrawColor(draw->renderer.get(), 0, 0, 0, 255);
+                SDL_SetRenderDrawBlendMode(draw->renderer.get(), SDL_BLENDMODE_BLEND);
+                SDL_SetRenderDrawColor(draw->renderer.get(), 0, 0, 0, 255);
                 draw->CreateViewport(texture.get(), 0, 540, 1280, 180);
 
                 int y = 0;
                 for (int i = 0; i < msgArray.size(); i++)
                 {
-                    std::cout << "hi2 :" << msgArray[i] << std::endl;
                     draw->WriteText(msgArray[i], {0xFF, 0xFF, 0xFF}, 0, y);
                     y += 20;
                 }
@@ -205,12 +199,12 @@ namespace game
             {
                 SDL_SetRenderDrawColor(draw->renderer.get(), 0, 0, 0, 0);
                 SDL_RenderClear(draw->renderer.get());
-                isOpen = false;
             }
         }
 
     private:
         bool isOpen = false;
+        std::shared_ptr<LTexture> textTexture = nullptr; // = std::make_shared<LTexture>();
         std::shared_ptr<SDL_Texture> texture = nullptr;
         std::shared_ptr<MessageBus> messageBus = nullptr;
         std::shared_ptr<framework::Draw> draw = nullptr;
