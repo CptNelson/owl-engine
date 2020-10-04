@@ -2,6 +2,7 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL2_gfxPrimitives.h>
 #include <stdio.h>
 #include <memory>
 #include <string>
@@ -90,7 +91,7 @@ namespace framework
     {
         auto imageTexture = createTextureFromSurface(imageSurface, x, y);
 
-        createViewport(imageTexture.get(), 0, 0, 1280, 720);
+        createViewport(imageTexture.get(), 1280/2-1280/4, 720/2, 1280/2, 720/2);
     }
 
     void Draw::writeText(std::string text, SDL_Color color, int x, int y)
@@ -134,29 +135,66 @@ namespace framework
 
 namespace game
 {
-    class StartScreen
+
+    class Screen
     {
     public:
-        StartScreen(const std::shared_ptr<framework::Draw> draw)
+        Screen(const std::shared_ptr<framework::Draw> draw, int x,int y,int w, int h, bool hasBorders = false)
         {
             this->draw = draw;
-            image = draw->loadFromFile("framework/pixl.png");
-            if (image == nullptr)
+            borders = hasBorders;
+        };
+        ~Screen(){};
+
+        virtual void update()
+        {
+            if (borders)
             {
-                std::cout << "errror" << std::endl;
+                SDL_Point points[5] = {
+                                    {0, 0},
+                                    {1279, 0},
+                                    {1279, 719},
+                                    {0, 719},
+                                    {0, 0}
+                                };
+
+                SDL_SetRenderDrawColor(draw->renderer.get(), 255, 0, 0, SDL_ALPHA_OPAQUE);
+                //SDL_RenderSetScale(draw->renderer.get(), 2, 2 );
+                SDL_RenderDrawLines(draw->renderer.get(), points, 5);
+
+            }
+
+        }
+    protected:
+        std::shared_ptr<framework::Draw> draw = nullptr;
+        std::shared_ptr<SDL_Texture> texture = nullptr;
+        std::shared_ptr<SDL_Surface> surface = nullptr;
+        bool borders = false;
+    };
+
+    class StartScreen : public Screen
+    {
+    public:
+            StartScreen(const std::shared_ptr<framework::Draw> draw, int x, int y, int w, int h) : Screen(draw,x,y,w,h)
+        {
+            this->draw = draw;
+            surface = draw->loadFromFile("framework/pixl.png");
+            if (surface == nullptr)
+            {
+                std::cout << "error" << std::endl;
             }
         };
         ~StartScreen(){};
 
         void drawImage()
         {
-            //draw->CreateViewport(image.get(), 0, 0, 1280, 720);
-            draw->drawImageFromFile(image, 0, 0);
+            //draw->createViewport(image.get(), 0, 0, 1280, 720);
+            //draw->writeText("THE OWL ENGINE", {255, 175, 46}, 1280/2, 100);
+            draw->drawImageFromFile(surface, 0, 0);
         }
 
     private:
-        std::shared_ptr<framework::Draw> draw = nullptr;
-        std::shared_ptr<SDL_Surface> image = nullptr;
+        //std::shared_ptr<SDL_Surface> image = nullptr;
     };
 } // namespace game
 
@@ -164,10 +202,11 @@ namespace game
 
 namespace game
 {
-    class Console : public BusNode
+    class Console : public BusNode, public Screen
     {
     public:
-        Console(const std::shared_ptr<MessageBus> msgBus, const std::shared_ptr<framework::Draw> draw) : BusNode(msgBus)
+        Console(const std::shared_ptr<MessageBus> msgBus, const std::shared_ptr<framework::Draw> draw, int x, int y, int w, int h) : BusNode(msgBus),
+                             Screen(draw,x,y,w,h)
         {
             // this->messageBus = msgBus;
             this->draw = draw;
@@ -224,7 +263,7 @@ namespace game
         std::shared_ptr<LTexture> textTexture = nullptr; // = std::make_shared<LTexture>();
         std::shared_ptr<SDL_Texture> texture = nullptr;
         std::shared_ptr<MessageBus> messageBus = nullptr;
-        std::shared_ptr<framework::Draw> draw = nullptr;
+        //std::shared_ptr<framework::Draw> draw = nullptr;
         std::vector<std::string> msgArray;
 
         void onNotify(Message msg)

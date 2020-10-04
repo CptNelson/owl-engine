@@ -59,8 +59,8 @@ int main(int argc, char *argv[])
     }
 
     std::shared_ptr<framework::Draw> draw = std::make_shared<framework::Draw>(window.get());
-    std::shared_ptr<game::Console> console = std::make_shared<game::Console>(messageBus, draw);
-    std::shared_ptr<game::StartScreen> start = std::make_shared<game::StartScreen>(draw);
+    std::shared_ptr<game::Console> console = std::make_shared<game::Console>(messageBus, draw, 0,0,0,0);
+    std::shared_ptr<game::StartScreen> start = std::make_shared<game::StartScreen>(draw, 0,0,1280,720);
     if (console == nullptr || start == nullptr)
     {
         std::cout << "error";
@@ -92,6 +92,7 @@ int main(int argc, char *argv[])
             }
         }
         start->drawImage();
+        start->update();
         console->update();
         messageBus->notify();
         draw->update();
