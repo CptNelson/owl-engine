@@ -21,14 +21,15 @@ namespace framework
         //==============================================================================
 
         std::shared_ptr<SDL_Renderer> renderer = nullptr;
-        void Update();
-        // wMod and hMod is used to make surfaces smaller, because text is too large
-        void CreateTextureFromSurface(std::shared_ptr<SDL_Renderer> renderer, std::shared_ptr<SDL_Surface> surface, int x, int y, int wMod = 1, int hMod = 1);
-        void WriteText(std::string text, SDL_Color color, int x, int y);
-        void CreateViewport(SDL_Texture *texture, int x, int y, int w, int h);
-        void fillTexture(SDL_Texture *texture, int r, int g, int b, int a);
-        void DrawImageFromFile(std::shared_ptr<SDL_Surface> imageSurface, int x, int y);
+        std::shared_ptr<SDL_Texture> createTextureFromSurface(std::shared_ptr<SDL_Surface> surface, int x, int y);
         std::shared_ptr<SDL_Surface> loadFromFile(std::string path);
+        void update();
+        void render(std::shared_ptr<SDL_Texture> texture, int x, int y, int width, int height, SDL_Rect *clip = NULL, double angle = 0.0, SDL_Point *center = NULL, SDL_RendererFlip flip = SDL_FLIP_NONE);
+        // wMod and hMod is used to make surfaces smaller, because text is too large
+        void writeText(std::string text, SDL_Color color, int x, int y);
+        void createViewport(SDL_Texture *texture, int x, int y, int w, int h);
+        void fillTexture(SDL_Texture *texture, int r, int g, int b, int a);
+        void drawImageFromFile(std::shared_ptr<SDL_Surface> imageSurface, int x, int y);
 
     private:
         std::shared_ptr<LTexture> textureObject = std::make_shared<LTexture>();
@@ -44,7 +45,23 @@ namespace framework
         int imgFlags = IMG_INIT_PNG;
     };
 
-    void Draw::CreateTextureFromSurface(std::shared_ptr<SDL_Renderer> renderer, std::shared_ptr<SDL_Surface> surface, int x, int y, int wMod, int hMod)
+    void Draw::render(std::shared_ptr<SDL_Texture> texture, int x, int y, int width, int height, SDL_Rect *clip, double angle, SDL_Point *center, SDL_RendererFlip flip)
+    {
+        //Set rendering space and render to screen
+        SDL_Rect renderQuad = {x, y, width, height};
+
+        //Set clip rendering dimensions
+        if (clip != NULL)
+        {
+            renderQuad.w = clip->w;
+            renderQuad.h = clip->h;
+        }
+
+        //Render to screen
+        SDL_RenderCopyEx(renderer.get(), texture.get(), clip, &renderQuad, angle, center, flip);
+    }
+
+    std::shared_ptr<SDL_Texture> Draw::createTextureFromSurface(std::shared_ptr<SDL_Surface> surface, int x, int y)
     {
         auto texture = sdl_shared(SDL_CreateTextureFromSurface(renderer.get(), surface.get()));
 
@@ -52,13 +69,8 @@ namespace framework
         {
             printf("Unable to create texture from rendered text! SDL Error: %s\n", SDL_GetError());
         }
-        else
-        {
-            //Get image dimensions
-            width = surface->w;
-            height = surface->h;
-        }
-        textureObject->render(texture, x, y, width / wMod, height / hMod, renderer.get());
+        return texture;
+        // textureObject->render(texture, x, y, width / wMod, height / hMod, renderer.get());
     };
 
     //TODO: move to utils!
@@ -74,23 +86,29 @@ namespace framework
         return loadedSurface;
     }
 
-    void Draw::DrawImageFromFile(std::shared_ptr<SDL_Surface> imageSurface, int x, int y)
+    void Draw::drawImageFromFile(std::shared_ptr<SDL_Surface> imageSurface, int x, int y)
     {
-        CreateTextureFromSurface(renderer, imageSurface, x, y);
+        auto imageTexture = createTextureFromSurface(imageSurface, x, y);
+
+        createViewport(imageTexture.get(), 0, 0, 1280, 720);
     }
 
-    void Draw::WriteText(std::string text, SDL_Color color, int x, int y)
+    void Draw::writeText(std::string text, SDL_Color color, int x, int y)
     {
         auto textSurface = textureObject->loadFromRenderedText(text, color);
-        CreateTextureFromSurface(renderer, textSurface, x, y, 8, 8);
+        //Get image dimensions
+        int width = textSurface->w / 6;
+        int height = textSurface->h / 6;
+        auto textTexture = createTextureFromSurface(textSurface, x, y);
+        render(textTexture, x, y, width, height);
     };
 
-    void Draw::Update()
+    void Draw::update()
     {
         SDL_RenderPresent(renderer.get());
     }
 
-    void Draw::CreateViewport(SDL_Texture *texture, int x, int y, int w, int h)
+    void Draw::createViewport(SDL_Texture *texture, int x, int y, int w, int h)
     {
         //Top left corner viewport
         SDL_Rect viewport;
@@ -122,7 +140,7 @@ namespace game
         StartScreen(const std::shared_ptr<framework::Draw> draw)
         {
             this->draw = draw;
-            image = draw->loadFromFile("framework/img.png");
+            image = draw->loadFromFile("framework/pixl.png");
             if (image == nullptr)
             {
                 std::cout << "errror" << std::endl;
@@ -133,7 +151,7 @@ namespace game
         void drawImage()
         {
             //draw->CreateViewport(image.get(), 0, 0, 1280, 720);
-            draw->DrawImageFromFile(image, 0, 0);
+            draw->drawImageFromFile(image, 0, 0);
         }
 
     private:
@@ -159,8 +177,7 @@ namespace game
 
         void createConsole()
         {
-            Message greeting("Hi!");
-            send(greeting);
+            Message greeting("The OWL Engine Console");
             send(greeting);
         }
 
@@ -182,23 +199,23 @@ namespace game
             {
                 texture = framework::sdl_shared(SDL_CreateTexture(draw->renderer.get(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 200, 180));
                 SDL_SetTextureBlendMode(texture.get(), SDL_BLENDMODE_BLEND);
-                draw->fillTexture(texture.get(), 100, 100, 100, 100);
+                draw->fillTexture(texture.get(), 100, 100, 100, 180);
                 SDL_SetRenderTarget(draw->renderer.get(), NULL);
                 SDL_SetRenderDrawBlendMode(draw->renderer.get(), SDL_BLENDMODE_BLEND);
                 SDL_SetRenderDrawColor(draw->renderer.get(), 0, 0, 0, 255);
-                draw->CreateViewport(texture.get(), 0, 540, 1280, 180);
+                draw->createViewport(texture.get(), 0, 540, 1280, 180);
 
                 int y = 0;
                 for (int i = 0; i < msgArray.size(); i++)
                 {
-                    draw->WriteText(msgArray[i], {0xFF, 0xFF, 0xFF}, 0, y);
+                    draw->writeText(msgArray[i], {255, 175, 46}, 0, y);
                     y += 20;
                 }
             }
             else
             {
                 SDL_SetRenderDrawColor(draw->renderer.get(), 0, 0, 0, 0);
-                SDL_RenderClear(draw->renderer.get());
+                //SDL_RenderClear(draw->renderer.get());
             }
         }
 

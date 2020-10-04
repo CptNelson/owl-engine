@@ -91,10 +91,11 @@ int main(int argc, char *argv[])
                 }
             }
         }
-        console->update();
         start->drawImage();
+        console->update();
         messageBus->notify();
-        draw->Update();
+        draw->update();
+        SDL_Delay(40);
     }
 
     close();
