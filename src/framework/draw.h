@@ -95,9 +95,6 @@ namespace framework
     std::shared_ptr<SDL_Texture> Draw::writeText(std::string text, SDL_Color color, int x, int y)
     {
         auto textSurface = textureObject->loadFromRenderedText(text, color);
-        //Get image dimensions
-        int width = textSurface->w / 6;
-        int height = textSurface->h / 6;
         auto textTexture = createTextureFromSurface(textSurface);
         return textTexture;
         //render(textTexture, x, y, width, height);
@@ -243,22 +240,39 @@ namespace game
             this->messageBus = msgBus;
             createConsole();
         }
+        bool isOpen = false;
 
         void createConsole()
         {
-            Message greeting("The OWL Engine Console");
+            Message greeting("===The OWL Engine Console===");
             send(greeting);
         }
 
-        void openConsole()
+        void openConsole(bool &inputText)
         {
             if (!isOpen)
             {
                 isOpen = true;
+                inputText = true;
+                SDL_StartTextInput();
             }
             else
             {
                 isOpen = false;
+                inputText = false;
+                SDL_StopTextInput();
+            }
+        }
+
+        void writeToConsole(char *t)
+        {
+            inputText += t;
+        }
+        void backSpace()
+        {
+            if (inputText.length() > 0)
+            {
+                inputText.pop_back();
             }
         }
 
@@ -280,19 +294,36 @@ namespace game
                 {
                     auto text = draw->writeText(msgArray[i], {255, 175, 46}, 0, y);
                     SDL_QueryTexture(text.get(), NULL, NULL, &w, &h);
-                    draw->render(text, 5, y, w / 6, h / 6);
+                    draw->render(text, 5, y, w / 4, h / 4);
                     y += 20;
                 }
+                if (inputText != "")
+                {
+                    //Render new text
+                    auto text = draw->writeText(inputText, {255, 175, 46}, 5, 30);
+                    int w, h;
+                    SDL_QueryTexture(text.get(), NULL, NULL, &w, &h);
+                    draw->render(text, 5, 50, w / 4, h / 4);
+                }
+                //Text is empty
+                /*
+                else
+                {
+                    auto text = draw->writeText(" ", {255, 175, 46}, 5, 30);
+                    int w, h;
+                    SDL_QueryTexture(text.get(), NULL, NULL, &w, &h);
+                    draw->render(text, 5, 30, w / 6, h / 6);
+                }
+                */
             }
         }
 
     private:
-        bool isOpen = false;
-        std::shared_ptr<LTexture> textTexture = nullptr; // = std::make_shared<LTexture>();
         std::shared_ptr<SDL_Texture> texture = nullptr;
         std::shared_ptr<MessageBus> messageBus = nullptr;
         //std::shared_ptr<framework::Draw> draw = nullptr;
         std::vector<std::string> msgArray;
+        std::string inputText = "";
 
         void onNotify(Message msg)
         {

@@ -39,12 +39,6 @@ bool init()
 
 void close()
 {
-
-    //Destroy window
-    //SDL_DestroyRenderer(gRenderer);
-    //gRenderer = nullptr;
-
-    //Quit SDL subsystems
     TTF_Quit();
     IMG_Quit();
     SDL_Quit();
@@ -70,6 +64,8 @@ int main(int argc, char *argv[])
     SDL_Event e;
     auto screenSurface = SDL_GetWindowSurface(window.get());
 
+    int lctrl = 0, rctrl = 0;
+    bool inputText = false;
     while (!quit)
     {
         SDL_RenderClear(draw->renderer.get());
@@ -88,12 +84,46 @@ int main(int argc, char *argv[])
                 switch (e.key.keysym.sym)
                 {
                 case SDLK_c:
-                    console->openConsole();
+                    if (lctrl)
+                        console->openConsole(inputText);
+                    std::cout << inputText << std::endl;
+                    break;
+
+                //Handle backspace
+                case SDLK_BACKSPACE:
+                {
+                    //lop off character
+                    console->backSpace();
                 }
+
+                case SDLK_RCTRL:
+                    rctrl = 1;
+                    break;
+                case SDLK_LCTRL:
+                    lctrl = 1;
+                    break;
+                }
+            }
+            else if (e.type == SDL_KEYUP)
+            {
+                switch (e.key.keysym.sym)
+                {
+                case SDLK_RCTRL:
+                    rctrl = 0;
+                    break;
+                case SDLK_LCTRL:
+                    lctrl = 0;
+                    break;
+                }
+            }
+
+            else if (e.type == SDL_TEXTINPUT && inputText)
+            {
+                console->writeToConsole(e.text.text);
+                std::cout << e.text.text << std::endl;
             }
         }
         start->update();
-        //start->drawImage();
         console->update();
         messageBus->notify();
         draw->update();
