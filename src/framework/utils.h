@@ -7,7 +7,7 @@
 
 //==============================================================================
 
-namespace framework
+namespace OWL
 {
     // HELPERS TO CREATE SMART POINTERS
     //https://blog.galowicz.de/2016/02/21/automatic_resource_release_with_sdl/
@@ -21,4 +21,14 @@ namespace framework
     {
         return std::shared_ptr<T>(t, [](T *t) { SDL_DelRes(t); });
     }
+
+    //==================================================
+
+    struct Color
+    {
+        int r;
+        int g;
+        int b;
+        int a;
+    };
 }

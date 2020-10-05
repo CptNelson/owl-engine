@@ -1,10 +1,13 @@
+#pragma once
+
 #include <stdio.h>
 #include <memory>
+#include <SDL2/SDL_ttf.h>
 #include "framework/window.h"
 #include "msg.h"
 #include "framework/draw.h"
+#include "framework/screen.h"
 //#include "framework/text.h"
-#include <SDL2/SDL_ttf.h>
 
 //=========================================================
 const int SCREEN_WIDTH = 1280;
@@ -23,7 +26,7 @@ bool init()
         return false;
     }
 
-    window = framework::createWindow("game 23", SCREEN_WIDTH, SCREEN_HEIGHT);
+    window = OWL::createWindow("game 23", SCREEN_WIDTH, SCREEN_HEIGHT);
     if (window == nullptr)
     {
         std::cout << "Window creation failed!" << std::endl;
@@ -52,8 +55,8 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    std::shared_ptr<framework::Draw> draw = std::make_shared<framework::Draw>(window.get());
-    std::shared_ptr<game::Console> console = std::make_shared<game::Console>(messageBus, draw, 0, 0, 0, 0);
+    std::shared_ptr<OWL::Draw> draw = std::make_shared<OWL::Draw>(window.get());
+    std::shared_ptr<game::Console> console = std::make_shared<game::Console>(messageBus, draw,0, 540, 1280, 180);
     std::shared_ptr<game::StartScreen> start = std::make_shared<game::StartScreen>(draw, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     if (console == nullptr || start == nullptr)
     {

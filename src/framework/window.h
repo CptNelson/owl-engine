@@ -5,7 +5,7 @@
 #include <memory>
 #include <string>
 
-namespace framework
+namespace OWL
 {
 
     std::shared_ptr<SDL_Window> createWindow(const char *name, int width, int height)

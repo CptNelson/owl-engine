@@ -120,7 +120,7 @@ std::shared_ptr<SDL_Surface> LTexture::loadFromRenderedText(std::string textureT
     }
 
     //Render text surface
-    std::shared_ptr<SDL_Surface> textSurface = framework::sdl_shared(TTF_RenderText_Blended(font, textureText.c_str(), textColor));
+    std::shared_ptr<SDL_Surface> textSurface = OWL::sdl_shared(TTF_RenderText_Blended(font, textureText.c_str(), textColor));
     return textSurface;
 }
 

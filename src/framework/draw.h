@@ -10,7 +10,7 @@
 #include <vector>
 
 //==============================================================================
-namespace framework
+namespace OWL
 {
     class Draw
     {
@@ -32,6 +32,7 @@ namespace framework
         void fillTexture(SDL_Texture *texture, int r, int g, int b, int a);
         void drawImageFromFile(std::shared_ptr<SDL_Surface> imageSurface, int x, int y);
         void drawBox(int x, int y, int w, int h, int r, int g, int b, int a, int thickness);
+        void createEmptyTexture(std::shared_ptr<SDL_Texture> texture, Color &c, int x, int y, int w, int h);
 
     private:
         std::shared_ptr<LTexture> textureObject = std::make_shared<LTexture>();
@@ -75,6 +76,15 @@ namespace framework
         // textureObject->render(texture, x, y, width / wMod, height / hMod, renderer.get());
     };
 
+    void Draw::createEmptyTexture(std::shared_ptr<SDL_Texture> texture, Color &c, int x, int y, int w, int h)
+    {
+        texture = OWL::sdl_shared(SDL_CreateTexture(renderer.get(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 1, 1));
+        SDL_SetTextureBlendMode(texture.get(), SDL_BLENDMODE_BLEND);
+        fillTexture(texture.get(), c.r, c.g, c.b, c.a);
+        SDL_SetRenderTarget(renderer.get(), NULL);
+        createViewport(texture.get(), x, y, w,h);
+    }
+
     //TODO: move to utils!
     std::shared_ptr<SDL_Surface> Draw::loadFromFile(std::string path)
     {
@@ -103,6 +113,8 @@ namespace framework
     void Draw::update()
     {
         SDL_RenderPresent(renderer.get());
+        // set the default color back to black
+        SDL_SetRenderDrawColor(renderer.get(), 0, 0, 0, 255);
     }
 
     void Draw::createViewport(SDL_Texture *texture, int x, int y, int w, int h)
@@ -148,244 +160,3 @@ namespace framework
 } // namespace framework
 
 //===================================================================================================================================
-
-namespace game
-{
-
-    class Screen
-    {
-    public:
-        Screen(const std::shared_ptr<framework::Draw> draw, int x, int y, int w, int h, bool hasBorders = true)
-        {
-            this->draw = draw;
-            this->x = x;
-            this->y = y;
-            this->w = w;
-            this->h = h;
-            borders = hasBorders;
-
-            texture = framework::sdl_shared(SDL_CreateTexture(draw->renderer.get(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 200, 180));
-            SDL_SetTextureBlendMode(texture.get(), SDL_BLENDMODE_BLEND);
-            draw->fillTexture(texture.get(), 0, 0, 0, 0);
-            SDL_SetRenderTarget(draw->renderer.get(), NULL);
-            SDL_SetRenderDrawBlendMode(draw->renderer.get(), SDL_BLENDMODE_BLEND);
-            SDL_SetRenderDrawColor(draw->renderer.get(), 0, 0, 0, 0);
-            draw->createViewport(texture.get(), x, y, w, h);
-        };
-        ~Screen(){};
-
-        virtual void update()
-        {
-            if (borders)
-            {
-                draw->createViewport(texture.get(), x, y, w, h);
-                draw->drawBox(x, y, w, h, 255, 175, 46, 255, 2);
-            }
-        }
-
-    protected:
-        std::shared_ptr<framework::Draw> draw = nullptr;
-        std::shared_ptr<SDL_Texture> texture = nullptr;
-        std::shared_ptr<SDL_Surface> surface = nullptr;
-        bool borders = true;
-        int x, y, w, h;
-    };
-
-    class StartScreen : public Screen
-    {
-    public:
-        StartScreen(const std::shared_ptr<framework::Draw> draw, int x, int y, int w, int h) : Screen(draw, x, y, w, h)
-        {
-            //this->draw = draw;
-            surface = draw->loadFromFile("framework/pixl.png");
-            if (surface == nullptr)
-            {
-                std::cout << "error" << std::endl;
-            }
-        };
-        ~StartScreen(){};
-
-        void update()
-        {
-            int w, h;
-            //draw->drawImageFromFile(surface, 1280 / 4, 720 / 2);
-            auto imageTexture = draw->createTextureFromSurface(surface);
-            SDL_QueryTexture(imageTexture.get(), NULL, NULL, &w, &h);
-            draw->createViewport(imageTexture.get(), 1280 - w / 4, 720 - h / 4, w / 4, h / 4);
-
-            auto text = draw->writeText("THE OWL ENGINE", {255, 175, 46}, 1280 / 2, 100);
-            SDL_QueryTexture(text.get(), NULL, NULL, &w, &h);
-            draw->createViewport(text.get(), 1280 / 2 - w / 4, 100, w / 2, h / 2);
-            draw->render(text, 0, 0, w / 2, h / 2);
-            Screen::update();
-        }
-
-    private:
-        //std::shared_ptr<SDL_Surface> image = nullptr;
-    };
-} // namespace game
-
-//===================================================================================================================================
-
-namespace game
-{
-    class Console : public BusNode, public Screen
-    {
-    public:
-        Console(const std::shared_ptr<MessageBus> msgBus, const std::shared_ptr<framework::Draw> draw, int x, int y, int w, int h) : BusNode(msgBus),
-                                                                                                                                     Screen(draw, x, y, w, h)
-        {
-            // this->messageBus = msgBus;
-            this->draw = draw;
-            this->messageBus = msgBus;
-            createConsole();
-        }
-        bool isOpen = false;
-
-        void createConsole()
-        {
-            Message greeting("===The OWL Engine Console===");
-            send(greeting);
-        }
-
-        void openConsole(bool &inputTextEnabled)
-        {
-            if (!isOpen)
-            {
-                isOpen = true;
-                inputTextEnabled = true;
-                SDL_StartTextInput();
-            }
-            else
-            {
-                isOpen = false;
-                inputTextEnabled = false;
-                SDL_StopTextInput();
-            }
-        }
-
-        void writeToConsole(char *t)
-        {
-            inputText += t;
-        }
-        void backSpace()
-        {
-            if (inputText.length() > 0)
-            {
-                inputText.pop_back();
-            }
-        }
-        void enter()
-        {
-            if (inputText.length() > 0)
-            {
-                Message msg(inputText);
-                send(msg);
-                inputText = "";
-            }
-        }
-        void moveUp()
-        {
-            // TODO: Doesn't work right
-            scroll-=1;
-            if (scroll < 0)
-                scroll = 0;
-        }
-        void moveDown()
-        {
-            scroll+=1;
-            if (scroll > msgArray.size()-2)
-                scroll = msgArray.size()-2;
-        }
-
-        void update()
-        {
-            if (isOpen)
-            {
-                texture = framework::sdl_shared(SDL_CreateTexture(draw->renderer.get(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 200, 180));
-                SDL_SetTextureBlendMode(texture.get(), SDL_BLENDMODE_BLEND);
-                draw->fillTexture(texture.get(), 100, 100, 100, 180);
-                SDL_SetRenderTarget(draw->renderer.get(), NULL);
-                SDL_SetRenderDrawBlendMode(draw->renderer.get(), SDL_BLENDMODE_BLEND);
-                SDL_SetRenderDrawColor(draw->renderer.get(), 0, 0, 0, 255);
-                draw->createViewport(texture.get(), 0, 540, 1280, 180);
-
-                // Console input #
-                auto hashtag = draw->writeText("> ", {255, 175, 46}, 5, 30);
-                int w, h;
-                SDL_QueryTexture(hashtag.get(), NULL, NULL, &w, &h);
-                draw->render(hashtag, 5, 180 - h / 6, w / 6, h / 6);
-
-                int y = 0;
-                for (int i = scroll; i < msgArray.size(); i++)
-                {
-                    std::string msgText = std::to_string(msgArray[i].getTime()/10) +": " + msgArray[i].getMessage();
-                    auto text = draw->writeText(msgText, {255, 175, 46}, 0, y);
-                    SDL_QueryTexture(text.get(), NULL, NULL, &w, &h);
-                    draw->render(text, 5, y, w / 6, h / 6);
-                    y += 20;
-                    if (y >= 160)
-                        scroll += 1;
-                }
-                if (inputText != "")
-                {
-                    //Render new text
-                    auto text = draw->writeText(inputText, {255, 175, 46}, 5, 30);
-                    int w, h;
-                    SDL_QueryTexture(text.get(), NULL, NULL, &w, &h);
-                    draw->render(text, 24, 180 - h / 6, w / 6, h / 6);
-                }
-            }
-        }
-
-    private:
-        std::shared_ptr<SDL_Texture> texture = nullptr;
-        std::shared_ptr<MessageBus> messageBus = nullptr;
-        std::vector<Message> msgArray;
-        std::string inputText = "";
-        int scroll = 0;
-
-        void onNotify(Message msg)
-        {
-            msgArray.push_back(msg);
-        }
-    };
-} // namespace game
-
-// ===GUI Elements====================================================================================================================
-
-class Button
-{
-private:
-    //The attributes of the button
-    SDL_Rect box;
-
-    //The part of the button sprite sheet that will be shown
-    // SDL_Rect *clip;
-
-public:
-    //Initialize the variables
-    Button(int x, int y, int w, int h);
-
-    //Handles events and set the button's sprite region
-    virtual void handle_events();
-
-    //Shows the button on the screen
-    virtual void show();
-};
-
-class TextButton : public Button
-{
-    public:
-        TextButton(std::string txt, int x, int y, int w, int h) : Button(x,y,w,h)
-        {
-            text = txt;
-        }
-
-        void show()
-        {
-            
-        }
-    private:
-        std::string text;
-};
