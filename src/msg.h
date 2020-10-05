@@ -15,15 +15,21 @@ namespace game
         Message(const std::string msg)
         {
             messageEvent = msg;
+            timestamp = SDL_GetTicks();
         }
 
         std::string getMessage()
         {
             return messageEvent;
         }
+        Uint32 getTime()
+        {
+            return timestamp;
+        }
 
     private:
         std::string messageEvent;
+        Uint32 timestamp; 
     };
 
     // bus to store all the messages
@@ -54,10 +60,8 @@ namespace game
         //first message in the queue will be send first and then popped out
         void notify()
         {
-            // std::cout << "empty ";
             while (!messages.empty())
             {
-                std::cout << " not empty ";
                 for (auto iter = receivers.begin(); iter != receivers.end(); iter++)
                 {
                     (*iter)(messages.front());

@@ -284,6 +284,19 @@ namespace game
                 inputText = "";
             }
         }
+        void moveUp()
+        {
+            // TODO: Doesn't work right
+            scroll-=1;
+            if (scroll < 0)
+                scroll = 0;
+        }
+        void moveDown()
+        {
+            scroll+=1;
+            if (scroll > msgArray.size()-2)
+                scroll = msgArray.size()-2;
+        }
 
         void update()
         {
@@ -306,7 +319,8 @@ namespace game
                 int y = 0;
                 for (int i = scroll; i < msgArray.size(); i++)
                 {
-                    auto text = draw->writeText(msgArray[i], {255, 175, 46}, 0, y);
+                    std::string msgText = std::to_string(msgArray[i].getTime()/10) +": " + msgArray[i].getMessage();
+                    auto text = draw->writeText(msgText, {255, 175, 46}, 0, y);
                     SDL_QueryTexture(text.get(), NULL, NULL, &w, &h);
                     draw->render(text, 5, y, w / 6, h / 6);
                     y += 20;
@@ -327,13 +341,13 @@ namespace game
     private:
         std::shared_ptr<SDL_Texture> texture = nullptr;
         std::shared_ptr<MessageBus> messageBus = nullptr;
-        std::vector<std::string> msgArray;
+        std::vector<Message> msgArray;
         std::string inputText = "";
         int scroll = 0;
 
         void onNotify(Message msg)
         {
-            msgArray.push_back(msg.getMessage());
+            msgArray.push_back(msg);
         }
     };
 } // namespace game
@@ -354,8 +368,24 @@ public:
     Button(int x, int y, int w, int h);
 
     //Handles events and set the button's sprite region
-    void handle_events();
+    virtual void handle_events();
 
     //Shows the button on the screen
-    void show();
+    virtual void show();
+};
+
+class TextButton : public Button
+{
+    public:
+        TextButton(std::string txt, int x, int y, int w, int h) : Button(x,y,w,h)
+        {
+            text = txt;
+        }
+
+        void show()
+        {
+            
+        }
+    private:
+        std::string text;
 };

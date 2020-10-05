@@ -88,12 +88,19 @@ int main(int argc, char *argv[])
                         console->openConsole(inputText);
                     break;
 
-                //Handle backspace
                 case SDLK_BACKSPACE:
                     console->backSpace();
                     break;
                 case SDLK_RETURN:
                     console->enter();
+                    break;
+                
+                //scroll up and down messages
+                case SDLK_UP:
+                    console->moveUp();
+                    break;
+                case SDLK_DOWN:
+                    console->moveDown();
                     break;
 
                 case SDLK_RCTRL:
