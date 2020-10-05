@@ -246,20 +246,25 @@ namespace game
         {
             Message greeting("===The OWL Engine Console===");
             send(greeting);
+            send(greeting);
+            send(greeting);
+            send(greeting);
+            send(greeting);
+            send(greeting);
         }
 
-        void openConsole(bool &inputText)
+        void openConsole(bool &inputTextEnabled)
         {
             if (!isOpen)
             {
                 isOpen = true;
-                inputText = true;
+                inputTextEnabled = true;
                 SDL_StartTextInput();
             }
             else
             {
                 isOpen = false;
-                inputText = false;
+                inputTextEnabled = false;
                 SDL_StopTextInput();
             }
         }
@@ -275,6 +280,13 @@ namespace game
                 inputText.pop_back();
             }
         }
+        void enter()
+        {
+            if (inputText.length() > 0)
+            {
+                inputText = "";
+            }
+        }
 
         void update()
         {
@@ -288,13 +300,18 @@ namespace game
                 SDL_SetRenderDrawColor(draw->renderer.get(), 0, 0, 0, 255);
                 draw->createViewport(texture.get(), 0, 540, 1280, 180);
 
-                int y = 0;
+                // Console input #
+                auto hashtag = draw->writeText("# ", {255, 175, 46}, 5, 30);
                 int w, h;
+                SDL_QueryTexture(hashtag.get(), NULL, NULL, &w, &h);
+                draw->render(hashtag, 5, 180 - h / 6, w / 6, h / 6);
+
+                int y = 0;
                 for (int i = 0; i < msgArray.size(); i++)
                 {
                     auto text = draw->writeText(msgArray[i], {255, 175, 46}, 0, y);
                     SDL_QueryTexture(text.get(), NULL, NULL, &w, &h);
-                    draw->render(text, 5, y, w / 4, h / 4);
+                    draw->render(text, 5, y, w / 6, h / 6);
                     y += 20;
                 }
                 if (inputText != "")
@@ -303,25 +320,14 @@ namespace game
                     auto text = draw->writeText(inputText, {255, 175, 46}, 5, 30);
                     int w, h;
                     SDL_QueryTexture(text.get(), NULL, NULL, &w, &h);
-                    draw->render(text, 5, 50, w / 4, h / 4);
+                    draw->render(text, 24, 180 - h / 6, w / 6, h / 6);
                 }
-                //Text is empty
-                /*
-                else
-                {
-                    auto text = draw->writeText(" ", {255, 175, 46}, 5, 30);
-                    int w, h;
-                    SDL_QueryTexture(text.get(), NULL, NULL, &w, &h);
-                    draw->render(text, 5, 30, w / 6, h / 6);
-                }
-                */
             }
         }
 
     private:
         std::shared_ptr<SDL_Texture> texture = nullptr;
         std::shared_ptr<MessageBus> messageBus = nullptr;
-        //std::shared_ptr<framework::Draw> draw = nullptr;
         std::vector<std::string> msgArray;
         std::string inputText = "";
 
@@ -331,3 +337,25 @@ namespace game
         }
     };
 } // namespace game
+
+// ===GUI Elements====================================================================================================================
+
+class Button
+{
+private:
+    //The attributes of the button
+    SDL_Rect box;
+
+    //The part of the button sprite sheet that will be shown
+    // SDL_Rect *clip;
+
+public:
+    //Initialize the variables
+    Button(int x, int y, int w, int h);
+
+    //Handles events and set the button's sprite region
+    void handle_events();
+
+    //Shows the button on the screen
+    void show();
+};

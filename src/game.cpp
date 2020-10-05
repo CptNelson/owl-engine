@@ -91,10 +91,9 @@ int main(int argc, char *argv[])
 
                 //Handle backspace
                 case SDLK_BACKSPACE:
-                {
-                    //lop off character
                     console->backSpace();
-                }
+                case SDLK_RETURN:
+                    console->enter();
 
                 case SDLK_RCTRL:
                     rctrl = 1;
