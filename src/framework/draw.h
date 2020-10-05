@@ -246,11 +246,6 @@ namespace game
         {
             Message greeting("===The OWL Engine Console===");
             send(greeting);
-            send(greeting);
-            send(greeting);
-            send(greeting);
-            send(greeting);
-            send(greeting);
         }
 
         void openConsole(bool &inputTextEnabled)
@@ -284,6 +279,8 @@ namespace game
         {
             if (inputText.length() > 0)
             {
+                Message msg(inputText);
+                send(msg);
                 inputText = "";
             }
         }
@@ -301,18 +298,20 @@ namespace game
                 draw->createViewport(texture.get(), 0, 540, 1280, 180);
 
                 // Console input #
-                auto hashtag = draw->writeText("# ", {255, 175, 46}, 5, 30);
+                auto hashtag = draw->writeText("> ", {255, 175, 46}, 5, 30);
                 int w, h;
                 SDL_QueryTexture(hashtag.get(), NULL, NULL, &w, &h);
                 draw->render(hashtag, 5, 180 - h / 6, w / 6, h / 6);
 
                 int y = 0;
-                for (int i = 0; i < msgArray.size(); i++)
+                for (int i = scroll; i < msgArray.size(); i++)
                 {
                     auto text = draw->writeText(msgArray[i], {255, 175, 46}, 0, y);
                     SDL_QueryTexture(text.get(), NULL, NULL, &w, &h);
                     draw->render(text, 5, y, w / 6, h / 6);
                     y += 20;
+                    if (y >= 160)
+                        scroll += 1;
                 }
                 if (inputText != "")
                 {
@@ -330,6 +329,7 @@ namespace game
         std::shared_ptr<MessageBus> messageBus = nullptr;
         std::vector<std::string> msgArray;
         std::string inputText = "";
+        int scroll = 0;
 
         void onNotify(Message msg)
         {

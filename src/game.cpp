@@ -86,14 +86,15 @@ int main(int argc, char *argv[])
                 case SDLK_c:
                     if (lctrl)
                         console->openConsole(inputText);
-                    std::cout << inputText << std::endl;
                     break;
 
                 //Handle backspace
                 case SDLK_BACKSPACE:
                     console->backSpace();
+                    break;
                 case SDLK_RETURN:
                     console->enter();
+                    break;
 
                 case SDLK_RCTRL:
                     rctrl = 1;
@@ -119,7 +120,6 @@ int main(int argc, char *argv[])
             else if (e.type == SDL_TEXTINPUT && inputText)
             {
                 console->writeToConsole(e.text.text);
-                std::cout << e.text.text << std::endl;
             }
         }
         start->update();
