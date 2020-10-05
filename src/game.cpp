@@ -7,9 +7,9 @@
 #include <SDL2/SDL_ttf.h>
 
 //=========================================================
-
 const int SCREEN_WIDTH = 1280;
 const int SCREEN_HEIGHT = 720;
+
 std::shared_ptr<game::MessageBus> messageBus = nullptr;
 std::shared_ptr<SDL_Window> window = nullptr;
 //SDL_Renderer *gRenderer = nullptr;
@@ -59,8 +59,8 @@ int main(int argc, char *argv[])
     }
 
     std::shared_ptr<framework::Draw> draw = std::make_shared<framework::Draw>(window.get());
-    std::shared_ptr<game::Console> console = std::make_shared<game::Console>(messageBus, draw, 0,0,0,0);
-    std::shared_ptr<game::StartScreen> start = std::make_shared<game::StartScreen>(draw, 0,0,1280,720);
+    std::shared_ptr<game::Console> console = std::make_shared<game::Console>(messageBus, draw, 0, 0, 0, 0);
+    std::shared_ptr<game::StartScreen> start = std::make_shared<game::StartScreen>(draw, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     if (console == nullptr || start == nullptr)
     {
         std::cout << "error";
@@ -73,6 +73,7 @@ int main(int argc, char *argv[])
     while (!quit)
     {
         SDL_RenderClear(draw->renderer.get());
+        SDL_RenderSetViewport(draw->renderer.get(), NULL);
         //Handle events on queue
         while (SDL_PollEvent(&e) != 0)
         {
@@ -91,8 +92,8 @@ int main(int argc, char *argv[])
                 }
             }
         }
-        start->drawImage();
         start->update();
+        //start->drawImage();
         console->update();
         messageBus->notify();
         draw->update();
