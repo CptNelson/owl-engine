@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <iostream>
 #include "draw.h"
 #include "utils.h"
 
@@ -45,12 +46,12 @@ namespace OWL
         }
 
     protected:
-        std::shared_ptr<Draw> draw {nullptr};
-        std::shared_ptr<SDL_Texture> texture {nullptr};
-        SDL_Color foreground {255,175,46,255};
-        SDL_Color background {0,0,0,255};
+        std::shared_ptr<Draw> draw{nullptr};
+        std::shared_ptr<SDL_Texture> texture{nullptr};
+        SDL_Color foreground{255, 175, 46, 255};
+        SDL_Color background{0, 0, 0, 255};
         bool borders;
-        int borderWidth {2};
+        int borderWidth{2};
         int x, y, w, h;
     };
 
@@ -150,27 +151,27 @@ namespace game
             if (isOpen)
             {
                 draw->createEmptyTexture(texture, color, x, y, w, h);
-                
+                int ty = 0;
+
                 //=== Write message array into console
-                int y = 0;
                 for (int i = scroll; i < msgArray.size(); i++)
                 {
                     std::string msgText = std::to_string(msgArray[i].getTime() / 10) + ": " + msgArray[i].getMessage();
-                    auto text = draw->writeText(msgText, foreground, 0, y);
+                    auto text = draw->writeText(msgText, foreground, 0, ty);
                     // get the text size
                     SDL_QueryTexture(text.get(), NULL, NULL, &tw, &th);
-                    draw->render(text, 5, y, tw / 6, th / 6);
+                    draw->render(text, 5, ty, tw / 6, th / 6);
                     // move to next line. If the console is full, only draw most recent messages.
-                    y += th/6;
-                    if (y >= 160)
+                    ty += th / 6;
+                    if (ty >= 160)
                         scroll += 1;
                 }
 
-                //=== Console input === 
+                //=== Console input ===
                 auto hashtag = draw->writeText("> ", foreground, 5, 30);
                 SDL_QueryTexture(hashtag.get(), NULL, NULL, &tw, &th);
                 draw->render(hashtag, 5, 180 - th / 6, tw / 6, th / 6);
-                
+
                 // if user has written something, render it to the console bottom
                 if (inputText != "")
                 {
@@ -187,11 +188,11 @@ namespace game
     private:
         std::shared_ptr<SDL_Surface> surface = nullptr;
         std::shared_ptr<SDL_Texture> texture = nullptr;
-        std::vector<OWL::Message> msgArray; // store all messages from system
-        std::string inputText = ""; // text user is currently inputting
+        std::vector<OWL::Message> msgArray;     // store all messages from system
+        std::string inputText = "";             // text user is currently inputting
         SDL_Color color = {100, 100, 100, 180}; // console background color
-        int scroll = 0; // starting index for messageArray 
-        int tw, th; // text width and height
+        int scroll = 0;                         // starting index for messageArray
+        int tw, th;                             // text width and height
 
         // when message is received, push it to messageArray
         void onNotify(OWL::Message msg)
@@ -204,7 +205,7 @@ namespace game
     {
     public:
         StartScreen(const std::shared_ptr<OWL::MessageBus> msgBus, const std::shared_ptr<OWL::Draw> draw, int x, int y, int w, int h)
-            : Screen(msgBus, draw, x, y, w, h), surface {draw->loadFromFile("OWL/pixl.png")} {}
+            : Screen(msgBus, draw, x, y, w, h), surface{draw->loadFromFile("OWL/pixl.png")} {}
 
         void update()
         {

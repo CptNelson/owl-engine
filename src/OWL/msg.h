@@ -4,11 +4,10 @@
 #include <queue>
 #include <vector>
 #include <memory>
-#include <iostream>
 
 namespace OWL
 {
-     /**
+    /**
      * @brief Simple message class for commmunication between systems.
      *
      * @param msg message string
@@ -17,7 +16,7 @@ namespace OWL
     {
     public:
         Message(const std::string msg)
-            : messageEvent{msg}, timestamp{SDL_GetTicks()}{}
+            : messageEvent{msg}, timestamp{SDL_GetTicks()} {}
 
         std::string getMessage()
         {
@@ -33,32 +32,42 @@ namespace OWL
         Uint32 timestamp;
     };
 
-    // bus to store all the messages
+    /**
+     * @brief A bus to store all messeges send by systems.
+     * @details All components that can receive messages are added to the receivers vector.
+     *          All messages MessageBus receives are stored in messages queue in FIFO order.
+     */
     class MessageBus
     {
     public:
-        MessageBus(std::function<void(Message)> messageReceiver){};
-       // ~MessageBus(){};
+        MessageBus() {}
 
-        //This should be called when Bus is initialized.
-        //Add all the components that should get messages
-        //std::function can contain almost any object that acts like a function pointer in how you call it.
-        //This way we can accept receivers that don't inherit Observer class
-        //Also, the function name we pass can be different as long as the function has the same signature.
+        /**
+        * @brief Add a component to MessageBus's receivers.
+        * 
+        * @details Add all the components that should get messages
+        * std::function can contain almost any object that acts like a function pointer in how you call it.
+        * This way we can accept receivers that don't inherit any kind Observer class
+        * Also, the function name we pass can be different as long as the function has the same signature. 
+        * 
+        * @param messageReceiver by default this is BusNode's getNotifyFunc(). 
+        */
         void addReceiver(std::function<void(Message)> messageReceiver)
         {
             receivers.push_back(messageReceiver);
         }
 
-        //Add a new message that the bus will send to all receivers.
-        //All messages are added to queue, so it is FIFO.
+        /**
+        * @brief Add a new message that the bus will send to all receivers.
+        * @details All messages are added to queue, so it is FIFO.
+        * @param msg the message that is to be send
+        */
         void sendMessage(Message msg)
         {
             messages.push(msg);
         }
 
-        //notify will send all the messages to the receivers.
-        //first message in the queue will be send first and then popped out
+        /// @brief Notify will send all the messages in the queue to the receivers. FIFO.
         void notify()
         {
             while (!messages.empty())
@@ -76,11 +85,14 @@ namespace OWL
         std::queue<Message> messages;
     };
 
-    //base class that all components that use message bus inherit
+    /**
+    * @brief Base class that all components that use MessageBus inherit from.
+    * @details When constructed, it adds the message receiver function (getNotifyfunc) to the MessageBus.
+    * @param msgBus A reference to the MessageBus object. 
+    */
     class BusNode
     {
     public:
-        //When constructed, it adds it's message receiver function to message bus
         BusNode(std::shared_ptr<MessageBus> msgBus) : messageBus{msgBus}
         {
             messageBus->addReceiver(this->getNotifyFunc());
@@ -91,6 +103,7 @@ namespace OWL
     protected:
         std::shared_ptr<MessageBus> messageBus = nullptr;
 
+        /// add this object to the MessageBus receivers.
         std::function<void(Message)> getNotifyFunc()
         {
             auto messageListener = [=](Message msg) -> void {
@@ -104,10 +117,8 @@ namespace OWL
             messageBus->sendMessage(msg);
         }
 
-        virtual void onNotify(Message msg)
-        {
-            std::cout << "onNotify";
-        }
+        // This is called when MessageBus sends messages out.
+        virtual void onNotify(Message msg) {}
     };
 
 } // namespace OWL
