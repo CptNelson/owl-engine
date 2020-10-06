@@ -12,35 +12,31 @@
 namespace OWL
 {
     /**
-     * Base class for Screens
+     * @brief Base class for Screens. Inherits BusNode.
      *
-     * ...
-     *
-     * @param  draw reference to the Draw object
+     * @details Screens are used to create defined views
+     * inside the game window. The user can see multiple screens
+     * at the same time. They store data of what is shown, 
+     * and when they are visible, tell the renderer what to draw.
+     * 
+     * @param msgBus reference to MessageBus object
+     * @param draw reference to the Draw object
      * @param x,y the coordinates of top left corner
      * @param w,h the width and height of Screen
      * @param hasBorders bool for Screen border lines
      */
-    class Screen
+    class Screen : public BusNode
     {
     public:
-        Screen(const std::shared_ptr<Draw> draw, int x, int y, int w, int h, bool hasBorders = true)
-        {
-            this->draw = draw;
-            this->x = x;
-            this->y = y;
-            this->w = w;
-            this->h = h;
-            borders = hasBorders;
+        Screen(const std::shared_ptr<MessageBus> msgBus, const std::shared_ptr<Draw> draw, int x, int y, int w, int h, bool hasBorders = false)
+            : BusNode(msgBus),
+              draw{draw}, x{x}, y{y}, w{w}, h{h}, borders{hasBorders} {}
 
-            //draw->createEmptyTexture(texture, x,y,w,h);
-        };
-        ~Screen(){};
-        
         ///Update is run every time the renderer updates the game window
         virtual void update()
         {
-
+            //If borders are enabled, create a viewport and draw borders
+            // if a new viewport is not created here, the borders will appear around latest viewport that has been created
             if (borders)
             {
                 draw->createViewport(texture.get(), x, y, w, h);
@@ -49,36 +45,41 @@ namespace OWL
         }
 
     protected:
-        std::shared_ptr<OWL::Draw> draw = nullptr;
+        std::shared_ptr<Draw> draw = nullptr;
         std::shared_ptr<SDL_Texture> texture = nullptr;
-        std::shared_ptr<SDL_Surface> surface = nullptr;
         bool borders = true;
         int x, y, w, h;
     };
 
-} // namespace game
+} // namespace OWL
 
 //===================================================================================================================================
 
 namespace game
 {
-    class Console : public BusNode, public OWL::Screen
+    /**
+     * @brief In-game console. Inherits Screen and BusNode classes. 
+     *
+     * @details Console can be opened and closed with keyboard command.
+     * Because it inherits BusNode, it can see all the Messages
+     * that are send inside the engine. It will show those
+     * messages with timestamp made of game tick/10
+     * 
+     * It takes text input, and can run written commands.
+     *
+     * @param  msgBus reference to the MessageBus object
+     * @param  draw reference to the Draw object
+     * @param x,y the coordinates of top left corner
+     * @param w,h the width and height of Screen
+     * 
+     */
+    class Console : public OWL::Screen
     {
     public:
-        Console(const std::shared_ptr<MessageBus> msgBus, const std::shared_ptr<OWL::Draw> draw, int x, int y, int w, int h) : BusNode(msgBus),
-                                                                                                                                     Screen(draw, x, y, w, h)
-        {
-            this->draw = draw;
-            this->messageBus = msgBus;
-            createConsole();
-        }
-        bool isOpen = false;
+        Console(const std::shared_ptr<OWL::MessageBus> msgBus, const std::shared_ptr<OWL::Draw> draw, int x, int y, int w, int h)
+            : Screen(msgBus, draw, x, y, w, h) {}
 
-        void createConsole()
-        {
-            Message greeting("===The OWL Engine Console started===");
-            send(greeting);
-        }
+        bool isOpen = false;
 
         void openConsole(bool &inputTextEnabled)
         {
@@ -111,7 +112,7 @@ namespace game
         {
             if (inputText.length() > 0)
             {
-                Message msg(inputText);
+                OWL::Message msg(inputText);
                 send(msg);
                 inputText = "";
             }
@@ -119,22 +120,23 @@ namespace game
         void moveUp()
         {
             // TODO: Doesn't work right
-            scroll-=1;
+            scroll -= 1;
             if (scroll < 0)
                 scroll = 0;
         }
         void moveDown()
         {
-            scroll+=1;
-            if (scroll > msgArray.size()-2)
-                scroll = msgArray.size()-2;
+            scroll += 1;
+            if (scroll > msgArray.size() - 2)
+                scroll = msgArray.size() - 2;
         }
 
         void update()
         {
+
             if (isOpen)
             {
-                draw->createEmptyTexture(texture, color, x,y,w,h);
+                draw->createEmptyTexture(texture, color, x, y, w, h);
 
                 // Console input >
                 auto hashtag = draw->writeText("> ", {255, 175, 46}, 5, 30);
@@ -145,7 +147,7 @@ namespace game
                 int y = 0;
                 for (int i = scroll; i < msgArray.size(); i++)
                 {
-                    std::string msgText = std::to_string(msgArray[i].getTime()/10) +": " + msgArray[i].getMessage();
+                    std::string msgText = std::to_string(msgArray[i].getTime() / 10) + ": " + msgArray[i].getMessage();
                     auto text = draw->writeText(msgText, {255, 175, 46}, 0, y);
                     SDL_QueryTexture(text.get(), NULL, NULL, &w, &h);
                     draw->render(text, 5, y, w / 6, h / 6);
@@ -162,26 +164,29 @@ namespace game
                     draw->render(text, 24, 180 - h / 6, w / 6, h / 6);
                 }
             }
+            //call base class update method
+            Screen::update();
         }
 
     private:
+        std::shared_ptr<SDL_Surface> surface = nullptr;
         std::shared_ptr<SDL_Texture> texture = nullptr;
-        std::shared_ptr<MessageBus> messageBus = nullptr;
-        std::vector<Message> msgArray;
+        std::vector<OWL::Message> msgArray;
         std::string inputText = "";
         int scroll = 0;
         OWL::Color color = {100, 100, 100, 180};
 
-        void onNotify(Message msg)
+        void onNotify(OWL::Message msg)
         {
             msgArray.push_back(msg);
         }
     };
-    
+
     class StartScreen : public OWL::Screen
     {
     public:
-        StartScreen(const std::shared_ptr<OWL::Draw> draw, int x, int y, int w, int h) : Screen(draw, x, y, w, h)
+        StartScreen(const std::shared_ptr<OWL::MessageBus> msgBus, const std::shared_ptr<OWL::Draw> draw, int x, int y, int w, int h)
+            : Screen(msgBus, draw, x, y, w, h)
         {
             //this->draw = draw;
             surface = draw->loadFromFile("framework/pixl.png");
@@ -190,7 +195,6 @@ namespace game
                 std::cout << "error" << std::endl;
             }
         };
-        ~StartScreen(){};
 
         void update()
         {
@@ -208,6 +212,6 @@ namespace game
         }
 
     private:
-        //std::shared_ptr<SDL_Surface> image = nullptr;
+        std::shared_ptr<SDL_Surface> surface = nullptr;
     };
 } // namespace game

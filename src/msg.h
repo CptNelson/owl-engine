@@ -6,7 +6,7 @@
 #include <memory>
 #include <iostream>
 
-namespace game
+namespace OWL
 {
     // Simple message class. it accepts string msg, this could be changed to Enum?
     class Message
@@ -29,7 +29,7 @@ namespace game
 
     private:
         std::string messageEvent;
-        Uint32 timestamp; 
+        Uint32 timestamp;
     };
 
     // bus to store all the messages
@@ -80,10 +80,9 @@ namespace game
     {
     public:
         //When constructed, it adds it's message receiver function to message bus
-        BusNode(std::shared_ptr<MessageBus> msgBus)
+        BusNode(std::shared_ptr<MessageBus> msgBus) : messageBus{msgBus}
         {
-            this->messageBus = msgBus;
-            this->messageBus->addReceiver(this->getNotifyFunc());
+            messageBus->addReceiver(this->getNotifyFunc());
         }
 
         virtual void update(){};
@@ -110,4 +109,4 @@ namespace game
         }
     };
 
-} // namespace game
+} // namespace OWL

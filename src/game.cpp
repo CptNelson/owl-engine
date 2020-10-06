@@ -13,13 +13,13 @@
 const int SCREEN_WIDTH = 1280;
 const int SCREEN_HEIGHT = 720;
 
-std::shared_ptr<game::MessageBus> messageBus = nullptr;
+std::shared_ptr<OWL::MessageBus> messageBus = nullptr;
 std::shared_ptr<SDL_Window> window = nullptr;
 //SDL_Renderer *gRenderer = nullptr;
 
 bool init()
 {
-    messageBus = std::make_shared<game::MessageBus>();
+    messageBus = std::make_shared<OWL::MessageBus>();
     if (messageBus == nullptr)
     {
         std::cout << "messageBus creation failed!" << std::endl;
@@ -56,8 +56,8 @@ int main(int argc, char *argv[])
     }
 
     std::shared_ptr<OWL::Draw> draw = std::make_shared<OWL::Draw>(window.get());
-    std::shared_ptr<game::Console> console = std::make_shared<game::Console>(messageBus, draw,0, 540, 1280, 180);
-    std::shared_ptr<game::StartScreen> start = std::make_shared<game::StartScreen>(draw, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    std::shared_ptr<game::Console> console = std::make_shared<game::Console>(messageBus, draw, 0, 540, 1280, 180);
+    std::shared_ptr<game::StartScreen> start = std::make_shared<game::StartScreen>(messageBus, draw, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
     if (console == nullptr || start == nullptr)
     {
         std::cout << "error";
@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
                 case SDLK_RETURN:
                     console->enter();
                     break;
-                
+
                 //scroll up and down messages
                 case SDLK_UP:
                     console->moveUp();
