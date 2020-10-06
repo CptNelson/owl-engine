@@ -8,15 +8,16 @@
 
 namespace OWL
 {
-    // Simple message class. it accepts string msg, this could be changed to Enum?
+     /**
+     * @brief Simple message class for commmunication between systems.
+     *
+     * @param msg message string
+     */
     class Message
     {
     public:
         Message(const std::string msg)
-        {
-            messageEvent = msg;
-            timestamp = SDL_GetTicks();
-        }
+            : messageEvent{msg}, timestamp{SDL_GetTicks()}{}
 
         std::string getMessage()
         {
@@ -36,8 +37,8 @@ namespace OWL
     class MessageBus
     {
     public:
-        MessageBus(){};
-        ~MessageBus(){};
+        MessageBus(std::function<void(Message)> messageReceiver){};
+       // ~MessageBus(){};
 
         //This should be called when Bus is initialized.
         //Add all the components that should get messages

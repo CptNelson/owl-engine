@@ -20,18 +20,18 @@ namespace OWL
         ~Draw(){};
         //==============================================================================
 
+        void update();
+        void reset();
         std::shared_ptr<SDL_Renderer> renderer = nullptr;
         std::shared_ptr<SDL_Texture> createTextureFromSurface(std::shared_ptr<SDL_Surface> surface);
         std::shared_ptr<SDL_Surface> loadFromFile(std::string path);
-        void update();
-        void reset();
-        void render(std::shared_ptr<SDL_Texture> texture, int x, int y, int width, int height, SDL_Rect *clip = NULL, double angle = 0.0, SDL_Point *center = NULL, SDL_RendererFlip flip = SDL_FLIP_NONE);
         std::shared_ptr<SDL_Texture> writeText(std::string text, SDL_Color color, int x, int y);
+        void render(std::shared_ptr<SDL_Texture> texture, int x, int y, int width, int height, SDL_Rect *clip = NULL, double angle = 0.0, SDL_Point *center = NULL, SDL_RendererFlip flip = SDL_FLIP_NONE);
         void createViewport(SDL_Texture *texture, int x, int y, int w, int h);
         void fillTexture(SDL_Texture *texture, int r, int g, int b, int a);
         void drawImageFromFile(std::shared_ptr<SDL_Surface> imageSurface, int x, int y);
-        void drawBox(int x, int y, int w, int h, int r, int g, int b, int a, int thickness);
-        void createEmptyTexture(std::shared_ptr<SDL_Texture> texture, Color &c, int x, int y, int w, int h);
+        void drawBox(int x, int y, int w, int h, SDL_Color c, int thickness);
+        void createEmptyTexture(std::shared_ptr<SDL_Texture> texture, SDL_Color &c, int x, int y, int w, int h);
 
     private:
         std::shared_ptr<LTexture> textureObject = std::make_shared<LTexture>();
@@ -75,7 +75,7 @@ namespace OWL
         // textureObject->render(texture, x, y, width / wMod, height / hMod, renderer.get());
     };
 
-    void Draw::createEmptyTexture(std::shared_ptr<SDL_Texture> texture, Color &c, int x, int y, int w, int h)
+    void Draw::createEmptyTexture(std::shared_ptr<SDL_Texture> texture, SDL_Color &c, int x, int y, int w, int h)
     {
         texture = OWL::sdl_shared(SDL_CreateTexture(renderer.get(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 1, 1));
         SDL_SetTextureBlendMode(texture.get(), SDL_BLENDMODE_BLEND);
@@ -137,7 +137,7 @@ namespace OWL
         SDL_RenderFillRect(renderer.get(), NULL);
     }
 
-    void Draw::drawBox(int x, int y, int w, int h, int r, int g, int b, int a, int t)
+    void Draw::drawBox(int x, int y, int w, int h, SDL_Color c, int t)
     {
 
         SDL_Point points[5] = {
@@ -146,7 +146,7 @@ namespace OWL
             {w / t - 1, h / t - 1},
             {x, h / t - 1},
             {x, y}};
-        SDL_SetRenderDrawColor(renderer.get(), r, g, b, a);
+        SDL_SetRenderDrawColor(renderer.get(), c.r, c.g, c.b, c.a);
         SDL_RenderSetScale(renderer.get(), t, t);
         SDL_RenderDrawLines(renderer.get(), points, 5);
         reset();

@@ -28,7 +28,7 @@ namespace OWL
     class Screen : public BusNode
     {
     public:
-        Screen(const std::shared_ptr<MessageBus> msgBus, const std::shared_ptr<Draw> draw, int x, int y, int w, int h, bool hasBorders = false)
+        Screen(const std::shared_ptr<MessageBus> msgBus, const std::shared_ptr<Draw> draw, int x, int y, int w, int h, bool hasBorders = true)
             : BusNode(msgBus),
               draw{draw}, x{x}, y{y}, w{w}, h{h}, borders{hasBorders} {}
 
@@ -40,14 +40,17 @@ namespace OWL
             if (borders)
             {
                 draw->createViewport(texture.get(), x, y, w, h);
-                draw->drawBox(x, y, w, h, 255, 175, 46, 255, 2);
+                draw->drawBox(x, y, w, h, foreground, borderWidth);
             }
         }
 
     protected:
-        std::shared_ptr<Draw> draw = nullptr;
-        std::shared_ptr<SDL_Texture> texture = nullptr;
-        bool borders = true;
+        std::shared_ptr<Draw> draw {nullptr};
+        std::shared_ptr<SDL_Texture> texture {nullptr};
+        SDL_Color foreground {255,175,46,255};
+        SDL_Color background {0,0,0,255};
+        bool borders;
+        int borderWidth {2};
         int x, y, w, h;
     };
 
@@ -67,8 +70,8 @@ namespace game
      * 
      * It takes text input, and can run written commands.
      *
-     * @param  msgBus reference to the MessageBus object
-     * @param  draw reference to the Draw object
+     * @param msgBus reference to the MessageBus object
+     * @param draw reference to the Draw object
      * @param x,y the coordinates of top left corner
      * @param w,h the width and height of Screen
      * 
@@ -147,31 +150,34 @@ namespace game
             if (isOpen)
             {
                 draw->createEmptyTexture(texture, color, x, y, w, h);
-
-                // Console input >
-                auto hashtag = draw->writeText("> ", {255, 175, 46}, 5, 30);
-                int w, h;
-                SDL_QueryTexture(hashtag.get(), NULL, NULL, &w, &h);
-                draw->render(hashtag, 5, 180 - h / 6, w / 6, h / 6);
-
+                
+                //=== Write message array into console
                 int y = 0;
                 for (int i = scroll; i < msgArray.size(); i++)
                 {
                     std::string msgText = std::to_string(msgArray[i].getTime() / 10) + ": " + msgArray[i].getMessage();
-                    auto text = draw->writeText(msgText, {255, 175, 46}, 0, y);
-                    SDL_QueryTexture(text.get(), NULL, NULL, &w, &h);
-                    draw->render(text, 5, y, w / 6, h / 6);
-                    y += 20;
+                    auto text = draw->writeText(msgText, foreground, 0, y);
+                    // get the text size
+                    SDL_QueryTexture(text.get(), NULL, NULL, &tw, &th);
+                    draw->render(text, 5, y, tw / 6, th / 6);
+                    // move to next line. If the console is full, only draw most recent messages.
+                    y += th/6;
                     if (y >= 160)
                         scroll += 1;
                 }
+
+                //=== Console input === 
+                auto hashtag = draw->writeText("> ", foreground, 5, 30);
+                SDL_QueryTexture(hashtag.get(), NULL, NULL, &tw, &th);
+                draw->render(hashtag, 5, 180 - th / 6, tw / 6, th / 6);
+                
+                // if user has written something, render it to the console bottom
                 if (inputText != "")
                 {
-                    //Render new text
-                    auto text = draw->writeText(inputText, {255, 175, 46}, 5, 30);
-                    int w, h;
-                    SDL_QueryTexture(text.get(), NULL, NULL, &w, &h);
-                    draw->render(text, 24, 180 - h / 6, w / 6, h / 6);
+                    //Render new text input
+                    auto text = draw->writeText(inputText, foreground, 5, 30);
+                    SDL_QueryTexture(text.get(), NULL, NULL, &tw, &th);
+                    draw->render(text, 24, 180 - th / 6, tw / 6, th / 6);
                 }
                 //call base class update method
                 Screen::update();
@@ -181,11 +187,13 @@ namespace game
     private:
         std::shared_ptr<SDL_Surface> surface = nullptr;
         std::shared_ptr<SDL_Texture> texture = nullptr;
-        std::vector<OWL::Message> msgArray;
-        std::string inputText = "";
-        int scroll = 0;
-        OWL::Color color = {100, 100, 100, 180};
+        std::vector<OWL::Message> msgArray; // store all messages from system
+        std::string inputText = ""; // text user is currently inputting
+        SDL_Color color = {100, 100, 100, 180}; // console background color
+        int scroll = 0; // starting index for messageArray 
+        int tw, th; // text width and height
 
+        // when message is received, push it to messageArray
         void onNotify(OWL::Message msg)
         {
             msgArray.push_back(msg);
@@ -196,31 +204,28 @@ namespace game
     {
     public:
         StartScreen(const std::shared_ptr<OWL::MessageBus> msgBus, const std::shared_ptr<OWL::Draw> draw, int x, int y, int w, int h)
-            : Screen(msgBus, draw, x, y, w, h)
+            : Screen(msgBus, draw, x, y, w, h), surface {draw->loadFromFile("OWL/pixl.png")} {}
+
+        void update()
         {
-            surface = draw->loadFromFile("OWL/pixl.png");
             if (surface == nullptr)
             {
                 std::cout << "error" << std::endl;
             }
-        };
-
-        void update()
-        {
-            int w, h;
             draw->drawImageFromFile(surface, 1280 / 4, 720 / 2);
             auto imageTexture = draw->createTextureFromSurface(surface);
-            SDL_QueryTexture(imageTexture.get(), NULL, NULL, &w, &h);
-            draw->createViewport(imageTexture.get(), 1280 - w / 4, 720 - h / 4, w / 4, h / 4);
+            SDL_QueryTexture(imageTexture.get(), NULL, NULL, &tw, &th);
+            draw->createViewport(imageTexture.get(), 1280 - tw / 4, 720 - th / 4, tw / 4, th / 4);
 
             auto text = draw->writeText("THE OWL ENGINE", {255, 175, 46}, 1280 / 2, 100);
-            SDL_QueryTexture(text.get(), NULL, NULL, &w, &h);
-            draw->createViewport(text.get(), 1280 / 2 - w / 4, 100, w / 2, h / 2);
-            draw->render(text, 0, 0, w / 2, h / 2);
+            SDL_QueryTexture(text.get(), NULL, NULL, &tw, &th);
+            draw->createViewport(text.get(), 1280 / 2 - tw / 4, 100, tw / 2, th / 2);
+            draw->render(text, 0, 0, tw / 2, th / 2);
             Screen::update();
         }
 
     private:
         std::shared_ptr<SDL_Surface> surface = nullptr;
+        int tw, th; // texture width and height
     };
 } // namespace game
