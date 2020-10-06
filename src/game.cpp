@@ -3,11 +3,10 @@
 #include <stdio.h>
 #include <memory>
 #include <SDL2/SDL_ttf.h>
-#include "framework/window.h"
-#include "msg.h"
-#include "framework/draw.h"
-#include "framework/screen.h"
-//#include "framework/text.h"
+#include "OWL/window.h"
+#include "OWL/msg.h"
+#include "OWL/draw.h"
+#include "OWL/screen.h"
 
 //=========================================================
 const int SCREEN_WIDTH = 1280;
