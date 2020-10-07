@@ -3,18 +3,16 @@
 #include <stdio.h>
 #include <memory>
 #include <SDL2/SDL_ttf.h>
+#include "OWL/globals.h"
 #include "OWL/window.h"
 #include "OWL/msg.h"
 #include "OWL/draw.h"
 #include "OWL/screen.h"
 
 //=========================================================
-const int SCREEN_WIDTH = 1280;
-const int SCREEN_HEIGHT = 720;
 
 std::shared_ptr<OWL::MessageBus> messageBus = nullptr;
 std::shared_ptr<SDL_Window> window = nullptr;
-//SDL_Renderer *gRenderer = nullptr;
 
 bool init()
 {
@@ -25,14 +23,12 @@ bool init()
         return false;
     }
 
-    window = OWL::createWindow("game 23", SCREEN_WIDTH, SCREEN_HEIGHT);
+    window = OWL::createWindow("game 23", OWL::SCREEN_WIDTH, OWL::SCREEN_HEIGHT);
     if (window == nullptr)
     {
         std::cout << "Window creation failed!" << std::endl;
         return false;
     }
-
-    //gRenderer = SDL_CreateRenderer(window.get(), -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 
     TTF_Init();
 
@@ -55,8 +51,8 @@ int main(int argc, char *argv[])
     }
 
     std::shared_ptr<OWL::Draw> draw = std::make_shared<OWL::Draw>(window.get());
-    std::shared_ptr<game::Console> console = std::make_shared<game::Console>(messageBus, draw, 0, 540, 1280, 180);
-    std::shared_ptr<game::StartScreen> start = std::make_shared<game::StartScreen>(messageBus, draw, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    std::shared_ptr<game::Console> console = std::make_shared<game::Console>(messageBus, draw, 0, 540, OWL::SCREEN_WIDTH, 180);
+    std::shared_ptr<game::StartScreen> start = std::make_shared<game::StartScreen>(messageBus, draw, 0, 0, OWL::SCREEN_WIDTH, OWL::SCREEN_HEIGHT);
     if (console == nullptr || start == nullptr)
     {
         std::cout << "error";

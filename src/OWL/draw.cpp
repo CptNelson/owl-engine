@@ -1,11 +1,13 @@
 #include "draw.h"
+#include "globals.h"
 
 namespace OWL
 {
 
     Draw::Draw(SDL_Window *window)
     {
-        font = TTF_OpenFont("OWL/hack-regular.ttf", 120);
+        //font = TTF_OpenFont("OWL/hack-regular.ttf", 120);
+        font = TTF_OpenFont(defaultFont, 120);
         width = 0;
         height = 0;
         renderer = sdl_shared(SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC));

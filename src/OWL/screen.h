@@ -213,14 +213,14 @@ namespace game
             {
                 std::cout << "error" << std::endl;
             }
-            draw->drawImageFromFile(surface, 1280 / 4, 720 / 2);
+            draw->drawImageFromFile(surface, OWL::SCREEN_WIDTH / 4, OWL::SCREEN_HEIGHT / 2);
             auto imageTexture = draw->createTextureFromSurface(surface);
             SDL_QueryTexture(imageTexture.get(), NULL, NULL, &tw, &th);
-            draw->createViewport(imageTexture.get(), 1280 - tw / 4, 720 - th / 4, tw / 4, th / 4);
+            draw->createViewport(imageTexture.get(), OWL::SCREEN_WIDTH - tw / 4, OWL::SCREEN_HEIGHT - th / 4, tw / 4, th / 4);
 
-            auto text = draw->writeText("THE OWL ENGINE", {255, 175, 46}, 1280 / 2, 100);
+            auto text = draw->writeText("THE OWL ENGINE", {255, 175, 46}, OWL::SCREEN_WIDTH / 2, 100);
             SDL_QueryTexture(text.get(), NULL, NULL, &tw, &th);
-            draw->createViewport(text.get(), 1280 / 2 - tw / 4, 100, tw / 2, th / 2);
+            draw->createViewport(text.get(), OWL::SCREEN_WIDTH / 2 - tw / 4, 100, tw / 2, th / 2);
             draw->render(text, 0, 0, tw / 2, th / 2);
             Screen::update();
         }
