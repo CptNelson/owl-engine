@@ -32,13 +32,21 @@ namespace OWL
 
     std::shared_ptr<SDL_Texture> Draw::createTextureFromSurface(std::shared_ptr<SDL_Surface> surface)
     {
-        auto texture = sdl_shared(SDL_CreateTextureFromSurface(renderer.get(), surface.get()));
-
+        if (renderer == nullptr)
+        {
+            printf("renderer");
+        }
+        if (surface == nullptr)
+        {
+            printf("surface");
+        }
+        //  auto texture = sdl_shared(SDL_CreateTextureFromSurface(renderer.get(), surface.get()));
+        /*
         if (texture == nullptr)
         {
             printf("Unable to create texture from rendered text! SDL Error: %s\n", SDL_GetError());
-        }
-        return texture;
+        }*/
+        return nullptr; //texture;
         // textureObject->render(texture, x, y, width / wMod, height / hMod, renderer.get());
     };
 
@@ -104,18 +112,18 @@ namespace OWL
         SDL_RenderFillRect(renderer.get(), NULL);
     }
 
-std::shared_ptr<SDL_Surface> Draw::loadFromRenderedText(std::string textureText, SDL_Color textColor)
-{
-    if (!font)
+    std::shared_ptr<SDL_Surface> Draw::loadFromRenderedText(std::string textureText, SDL_Color textColor)
     {
-        printf("TTF_OpenFont2: %s\n", TTF_GetError());
-        // handle error
-    }
+        if (!font)
+        {
+            printf("TTF_OpenFont2: %s\n", TTF_GetError());
+            // handle error
+        }
 
-    //Render text surface
-    std::shared_ptr<SDL_Surface> textSurface = OWL::sdl_shared(TTF_RenderText_Blended(font, textureText.c_str(), textColor));
-    return textSurface;
-}
+        //Render text surface
+        std::shared_ptr<SDL_Surface> textSurface = OWL::sdl_shared(TTF_RenderText_Blended(font, textureText.c_str(), textColor));
+        return textSurface;
+    }
 
     void Draw::drawBox(int x, int y, int w, int h, SDL_Color c, int t)
     {
@@ -136,4 +144,4 @@ std::shared_ptr<SDL_Surface> Draw::loadFromRenderedText(std::string textureText,
         SDL_SetRenderDrawColor(renderer.get(), 0, 0, 0, 255);
         SDL_RenderSetScale(renderer.get(), 1, 1);
     }
-}
+} // namespace OWL

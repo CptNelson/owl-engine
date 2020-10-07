@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdio.h>
+#include <iostream>
 #include <memory>
 #include <SDL2/SDL_ttf.h>
 #include "OWL/globals.h"
@@ -8,6 +9,7 @@
 #include "OWL/msg.h"
 #include "OWL/draw.h"
 #include "OWL/screen.h"
+#include "screens.h"
 
 //=========================================================
 
@@ -64,6 +66,7 @@ int main(int argc, char *argv[])
 
     int lctrl = 0, rctrl = 0;
     bool inputText = false;
+
     while (!quit)
     {
         SDL_RenderClear(draw->renderer.get());
@@ -128,9 +131,9 @@ int main(int argc, char *argv[])
             }
         }
         start->update();
-        console->update();
-        messageBus->notify();
-        draw->update();
+        //console->update();
+        //messageBus->notify();
+        //draw->update();
         SDL_Delay(40);
     }
 
