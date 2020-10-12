@@ -25,7 +25,7 @@ namespace OWL
         //==================================================================================================================================
 
         ///Update is run every time the renderer updates the game window
-        virtual void update() {}
+        virtual void update(); 
 
     protected:
         std::shared_ptr<Draw> draw{nullptr};

@@ -32,22 +32,8 @@ namespace OWL
 
     std::shared_ptr<SDL_Texture> Draw::createTextureFromSurface(std::shared_ptr<SDL_Surface> surface)
     {
-        if (renderer == nullptr)
-        {
-            printf("renderer");
-        }
-        if (surface == nullptr)
-        {
-            printf("surface");
-        }
-        //  auto texture = sdl_shared(SDL_CreateTextureFromSurface(renderer.get(), surface.get()));
-        /*
-        if (texture == nullptr)
-        {
-            printf("Unable to create texture from rendered text! SDL Error: %s\n", SDL_GetError());
-        }*/
-        return nullptr; //texture;
-        // textureObject->render(texture, x, y, width / wMod, height / hMod, renderer.get());
+        auto texture = sdl_shared(SDL_CreateTextureFromSurface(renderer.get(), surface.get()));
+        return texture;
     };
 
     void Draw::createEmptyTexture(std::shared_ptr<SDL_Texture> texture, SDL_Color &c, int x, int y, int w, int h)

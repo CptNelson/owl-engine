@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
     }
 
     std::shared_ptr<OWL::Draw> draw = std::make_shared<OWL::Draw>(window.get());
-    std::shared_ptr<game::Console> console = std::make_shared<game::Console>(messageBus, draw, 0, 540, OWL::SCREEN_WIDTH, 180);
+    std::shared_ptr<game::Console> console = std::make_shared<game::Console>(messageBus, draw, 0,OWL::SCREEN_HEIGHT - OWL::SCREEN_HEIGHT/4, OWL::SCREEN_WIDTH,OWL::SCREEN_HEIGHT/4);
     std::shared_ptr<game::StartScreen> start = std::make_shared<game::StartScreen>(messageBus, draw, 0, 0, OWL::SCREEN_WIDTH, OWL::SCREEN_HEIGHT);
     if (console == nullptr || start == nullptr)
     {
@@ -131,9 +131,9 @@ int main(int argc, char *argv[])
             }
         }
         start->update();
-        //console->update();
-        //messageBus->notify();
-        //draw->update();
+        console->update();
+        messageBus->notify();
+        draw->update();
         SDL_Delay(40);
     }
 

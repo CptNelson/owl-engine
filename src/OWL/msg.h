@@ -1,5 +1,6 @@
 #pragma once
 
+#include <SDL2/SDL.h>
 #include <stdio.h>
 #include <string>
 #include <functional>
@@ -24,14 +25,14 @@ namespace OWL
         {
             return messageEvent;
         }
-        Uint32 getTime()
+        uint32_t getTime()
         {
             return timestamp;
         }
 
     private:
         std::string messageEvent;
-        Uint32 timestamp;
+        uint32_t timestamp;
     };
 
     /**

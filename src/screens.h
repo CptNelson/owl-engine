@@ -1,4 +1,5 @@
 #include <iostream>
+#include "OWL/draw.h"
 #include "OWL/screen.h"
 #include "OWL/msg.h"
 #include "OWL/globals.h"
@@ -25,7 +26,7 @@ namespace game
     {
     public:
         Console(const std::shared_ptr<OWL::MessageBus> msgBus, const std::shared_ptr<OWL::Draw> draw, int x, int y, int w, int h)
-            : Screen(msgBus, draw, x, y, w, h) {}
+            : OWL::Screen(msgBus, draw, x, y, w, h) {}
 
         bool isOpen = false;
 
@@ -114,7 +115,7 @@ namespace game
                 //=== Console input ===
                 auto hashtag = draw->writeText("> ", foreground, 5, 30);
                 SDL_QueryTexture(hashtag.get(), NULL, NULL, &tw, &th);
-                draw->render(hashtag, 5, 180 - th / 6, tw / 6, th / 6);
+                draw->render(hashtag, 5, h - tw/6, tw / 6, th / 6);
 
                 // if user has written something, render it to the console bottom
                 if (inputText != "")
@@ -122,7 +123,7 @@ namespace game
                     //Render new text input
                     auto text = draw->writeText(inputText, foreground, 5, 30);
                     SDL_QueryTexture(text.get(), NULL, NULL, &tw, &th);
-                    draw->render(text, 24, 180 - th / 6, tw / 6, th / 6);
+                    draw->render(text, 24, h - th / 6, tw / 6, th / 6);
                 }
                 //call base class update method
                 Screen::update();
@@ -153,32 +154,21 @@ namespace game
 
         void update()
         {
-            if (surface == nullptr)
-            {
-                std::cout << "error" << std::endl;
-            }
-            if (draw == nullptr)
-            {
-                std::cout << "error1" << std::endl;
-            }
-            else
-            {
-                std::cout << "draw" << std::endl;
-            }
-            draw->drawImageFromFile(surface, OWL::SCREEN_WIDTH / 4, OWL::SCREEN_HEIGHT / 2);
-            // auto imageTexture = draw->createTextureFromSurface(surface);
-            //SDL_QueryTexture(imageTexture.get(), NULL, NULL, &tw, &th);
-            // draw->createViewport(imageTexture.get(), OWL::SCREEN_WIDTH - tw / 4, OWL::SCREEN_HEIGHT - th / 4, tw / 4, th / 4);
+          //  draw->drawImageFromFile(surface, OWL::SCREEN_WIDTH / 4, OWL::SCREEN_HEIGHT / 2);
+            imageTexture = draw->createTextureFromSurface(surface);
+            SDL_QueryTexture(imageTexture.get(), NULL, NULL, &tw, &th);
+            draw->createViewport(imageTexture.get(), OWL::SCREEN_WIDTH - tw / 4, OWL::SCREEN_HEIGHT - th / 4, tw / 4, th / 4);
 
-            // auto text = draw->writeText("THE OWL ENGINE", {255, 175, 46}, OWL::SCREEN_WIDTH / 2, 100);
-            // SDL_QueryTexture(text.get(), NULL, NULL, &tw, &th);
-            // draw->createViewport(text.get(), OWL::SCREEN_WIDTH / 2 - tw / 4, 100, tw / 2, th / 2);
-            // draw->render(text, 0, 0, tw / 2, th / 2);
-            // Screen::update();
+            auto text = draw->writeText("THE OWL ENGINE", {255, 175, 46}, OWL::SCREEN_WIDTH / 2, 100);
+            SDL_QueryTexture(text.get(), NULL, NULL, &tw, &th);
+            draw->createViewport(text.get(), OWL::SCREEN_WIDTH / 2 - tw / 4, 100, tw / 2, th / 2);
+            draw->render(text, 0, 0, tw / 2, th / 2);
+            Screen::update();
         }
 
     private:
         std::shared_ptr<SDL_Surface> surface = nullptr;
+        std::shared_ptr<SDL_Texture> imageTexture = nullptr;
         int tw, th; // texture width and height
     };
 } // namespace game
