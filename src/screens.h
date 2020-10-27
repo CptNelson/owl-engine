@@ -51,7 +51,7 @@ namespace game
             }
         }
 
-        //===Basic console typing & manipulation functions===
+        //===Basic console typing & manipulation functions=== === === === ===
 
         void writeToConsole(char *t)
         {
@@ -75,18 +75,24 @@ namespace game
         }
         void moveUp()
         {
+            scrolling = true;
             // TODO: Doesn't work right
             scroll -= 1;
             if (scroll < 0)
                 scroll = 0;
+            std::cout << scroll << std::endl;
         }
         void moveDown()
         {
             scroll += 1;
-            if (scroll > msgArray.size() - 2)
-                scroll = msgArray.size() - 2;
+            if (scroll > msgArray.size() - 5)
+            {
+                scroll = msgArray.size() - 5;
+                scrolling = false;
+            }
+            std::cout << scroll << std::endl;
         }
-        //=====================================================
+        //============================================================================
 
         /**
          * @brief Draw the console and write messages to it.
@@ -108,14 +114,14 @@ namespace game
                     draw->render(text, 5, ty, tw / 6, th / 6);
                     // move to next line. If the console is full, only draw most recent messages.
                     ty += th / 6;
-                    if (ty >= 160)
+                    if (ty >= 160 && !scrolling)
                         scroll += 1;
                 }
 
                 //=== Console input ===
                 auto hashtag = draw->writeText("> ", foreground, 5, 30);
                 SDL_QueryTexture(hashtag.get(), NULL, NULL, &tw, &th);
-                draw->render(hashtag, 5, h - tw/6, tw / 6, th / 6);
+                draw->render(hashtag, 5, h - tw / 6, tw / 6, th / 6);
 
                 // if user has written something, render it to the console bottom
                 if (inputText != "")
@@ -138,6 +144,7 @@ namespace game
         SDL_Color color = {100, 100, 100, 180}; // console background color
         int scroll = 0;                         // starting index for messageArray
         int tw, th;                             // text width and height
+        bool scrolling = false;
 
         // when message is received, push it to messageArray
         void onNotify(OWL::Message msg)
@@ -154,7 +161,7 @@ namespace game
 
         void update()
         {
-          //  draw->drawImageFromFile(surface, OWL::SCREEN_WIDTH / 4, OWL::SCREEN_HEIGHT / 2);
+            //  draw->drawImageFromFile(surface, OWL::SCREEN_WIDTH / 4, OWL::SCREEN_HEIGHT / 2);
             imageTexture = draw->createTextureFromSurface(surface);
             SDL_QueryTexture(imageTexture.get(), NULL, NULL, &tw, &th);
             draw->createViewport(imageTexture.get(), OWL::SCREEN_WIDTH - tw / 4, OWL::SCREEN_HEIGHT - th / 4, tw / 4, th / 4);
