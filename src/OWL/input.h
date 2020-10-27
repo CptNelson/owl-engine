@@ -24,5 +24,16 @@ namespace OWL
         virtual void update();
 
     protected:
+        SDL_Event e;
+        int lctrl{0}, rctrl{0};
+        bool inputText{false};
+
+        void onNotify(OWL::Message msg)
+        {
+            if (msg.getParameter(0) == "inputTextEnable")
+                inputText = true;
+            if (msg.getParameter(0) == "inputTextDisable")
+                inputText = false;
+        }
     };
 } // namespace OWL

@@ -18,13 +18,12 @@ namespace OWL
      */
     Input::Input(const std::shared_ptr<MessageBus> msgBus)
         : BusNode(msgBus, "Input") {}
-    SDL_Event e;
-    int lctrl = 0, rctrl = 0;
-    bool inputText = false;
 
     ///Update is run every time the renderer updates the game window
     void Input::update()
     {
+
+        //std::cout << inputText << std::endl;
         //Handle events on queue
         while (SDL_PollEvent(&e) != 0)
         {
@@ -32,7 +31,7 @@ namespace OWL
 
             if (e.type == SDL_QUIT)
             {
-                send("quit_game");
+                send({"quit_game"});
             }
             else if (e.type == SDL_KEYDOWN)
             {
@@ -40,26 +39,26 @@ namespace OWL
                 {
                 case SDLK_c:
                     if (lctrl)
-                        send("inputconsole", {"open"});
+                        send({"inputconsole", "open"});
                     // console->openConsole(inputText);
                     break;
 
                 case SDLK_BACKSPACE:
-                    send("inputconsole_backspace");
+                    send({"inputconsole", "backspace"});
                     //console->backSpace();
                     break;
                 case SDLK_RETURN:
-                    send("inputconsole_enter");
+                    send({"inputconsole", "enter"});
                     //  console->enter();
                     break;
 
                 //scroll up and down messages
                 case SDLK_UP:
-                    send("inputconsole_moveup");
+                    send({"inputconsole", "moveup"});
                     // console->moveUp();
                     break;
                 case SDLK_DOWN:
-                    send("inputconsole_movedown");
+                    send({"inputconsole", "movedown"});
                     //console->moveDown();
                     break;
 
@@ -86,12 +85,8 @@ namespace OWL
 
             else if (e.type == SDL_TEXTINPUT && inputText)
             {
-                std::string text = "inputconsole";
-                std::vector<std::string> params{e.text.text};
-                send(text, params);
-                // console->writeToConsole(e.text.text);
+                send({"inputconsole", "text", e.text.text});
             }
         }
     }
-
 }; // namespace OWL

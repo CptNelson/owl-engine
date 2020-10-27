@@ -69,9 +69,9 @@ int main(int argc, char *argv[])
 
     while (!quit)
     {
-        input->update();
         SDL_RenderClear(draw->renderer.get());
         SDL_RenderSetViewport(draw->renderer.get(), NULL);
+        input->update();
         start->update();
         console->update();
         messageBus->notify();

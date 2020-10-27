@@ -30,22 +30,20 @@ namespace game
 
         bool isOpen = false;
 
-        void onNotify(OWL::Message msg, std::vector<std::string> params)
-        {
-            if (msg.getMessage() == "inputconsole")
-                callMethod(params);
-        }
-
         void callMethod(std::vector<std::string> params)
         {
-            std::cout << "params" << std::endl;
-            std::cout << params[0] << std::endl;
-            if (params.size() > 0)
-            {
-                std::cout << "params23" << std::endl;
-                if (params[0] == "open")
-                    openConsole();
-            }
+            if (params[1] == "open")
+                openConsole();
+            if (params[1] == "backspace")
+                backSpace();
+            if (params[1] == "enter")
+                enter();
+            if (params[1] == "moveup")
+                moveUp();
+            if (params[1] == "movedown")
+                moveDown();
+            if (params[1] == "text")
+                writeToConsole(params[2]);
         }
         /**
          * @brief Open and close the console.
@@ -54,26 +52,25 @@ namespace game
          */
         void openConsole() //bool &inputTextEnabled)
         {
-            std::cout << "open" << std::endl;
             if (!isOpen)
             {
                 isOpen = true;
-                //inputTextEnabled = true;
+                send({"inputTextEnable"});
                 SDL_StartTextInput();
             }
             else
             {
                 isOpen = false;
-                //   inputTextEnabled = false;
+                send({"inputTextDisable"});
                 SDL_StopTextInput();
             }
         }
 
         //===Basic console typing & manipulation functions=== === === === ===
 
-        void writeToConsole(char *t)
+        void writeToConsole(std::string c)
         {
-            inputText += t;
+            inputText += c;
         }
         void backSpace()
         {
@@ -87,7 +84,7 @@ namespace game
             if (inputText.length() > 0)
             {
 
-                send(inputText);
+                send({inputText});
                 inputText = "";
             }
         }
@@ -117,6 +114,7 @@ namespace game
          */
         void update()
         {
+            //    std::cout << isOpen << std::endl;
             if (isOpen)
             {
                 draw->createEmptyTexture(texture, color, x, y, w, h);
@@ -125,7 +123,10 @@ namespace game
                 //=== Write message array into console
                 for (int i = scroll; i < msgArray.size(); i++)
                 {
-                    std::string msgText = std::to_string(msgArray[i].getTime() / 10) + ": " + msgArray[i].getMessage();
+                    std::string s;
+                    for (const auto test : msgArray[i].getParameters())
+                        s += test;
+                    std::string msgText = std::to_string(msgArray[i].getTime() / 10) + ": " + s;
                     auto text = draw->writeText(msgText, foreground, 0, ty);
                     // get the text size
                     SDL_QueryTexture(text.get(), NULL, NULL, &tw, &th);
@@ -167,7 +168,12 @@ namespace game
         // when message is received, push it to messageArray
         void onNotify(OWL::Message msg)
         {
-            msgArray.push_back(msg);
+            auto params = msg.getParameters();
+            if (msg.getParameter(0) == "inputconsole")
+                callMethod(params);
+            //TODO: hide open and close console messages
+            else
+                msgArray.push_back(msg);
         }
     };
 
