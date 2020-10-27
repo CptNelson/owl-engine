@@ -17,8 +17,9 @@ namespace OWL
      * at the same time. They store data of what is shown, 
      * and when they are visible, tell the renderer what to draw.
      */
-    Screen::Screen(const std::shared_ptr<MessageBus> msgBus, const std::shared_ptr<Draw> draw, int x, int y, int w, int h, bool hasBorders)
-        : BusNode(msgBus),
+    Screen::Screen(const std::shared_ptr<MessageBus> msgBus, const std::shared_ptr<Draw> draw, int x, int y, int w, int h,
+                   std::string name, bool hasBorders)
+        : BusNode(msgBus, name),
           draw{draw}, x{x}, y{y}, w{w}, h{h}, borders{hasBorders} {}
 
     ///Update is run every time the renderer updates the game window

@@ -20,12 +20,13 @@ namespace OWL
     {
     public:
         //==================================================================================================================================
-        Screen(const std::shared_ptr<MessageBus> msgBus, const std::shared_ptr<Draw> draw, int x, int y, int w, int h, bool hasBorders = true);
+        Screen(const std::shared_ptr<MessageBus> msgBus, const std::shared_ptr<Draw> draw, int x, int y, int w, int h,
+               std::string name = "unnamed Screen", bool hasBorders = true);
         //: BusNode(msgBus) {}
         //==================================================================================================================================
 
         ///Update is run every time the renderer updates the game window
-        virtual void update(); 
+        virtual void update();
 
     protected:
         std::shared_ptr<Draw> draw{nullptr};

@@ -26,27 +26,45 @@ namespace game
     {
     public:
         Console(const std::shared_ptr<OWL::MessageBus> msgBus, const std::shared_ptr<OWL::Draw> draw, int x, int y, int w, int h)
-            : OWL::Screen(msgBus, draw, x, y, w, h) {}
+            : OWL::Screen(msgBus, draw, x, y, w, h, "ConsoleScreen") {}
 
         bool isOpen = false;
 
+        void onNotify(OWL::Message msg, std::vector<std::string> params)
+        {
+            if (msg.getMessage() == "inputconsole")
+                callMethod(params);
+        }
+
+        void callMethod(std::vector<std::string> params)
+        {
+            std::cout << "params" << std::endl;
+            std::cout << params[0] << std::endl;
+            if (params.size() > 0)
+            {
+                std::cout << "params23" << std::endl;
+                if (params[0] == "open")
+                    openConsole();
+            }
+        }
         /**
          * @brief Open and close the console.
          *
          * @param inputTextEnabled Reference to bool to change if inputting is enabled or not.
          */
-        void openConsole(bool &inputTextEnabled)
+        void openConsole() //bool &inputTextEnabled)
         {
+            std::cout << "open" << std::endl;
             if (!isOpen)
             {
                 isOpen = true;
-                inputTextEnabled = true;
+                //inputTextEnabled = true;
                 SDL_StartTextInput();
             }
             else
             {
                 isOpen = false;
-                inputTextEnabled = false;
+                //   inputTextEnabled = false;
                 SDL_StopTextInput();
             }
         }
@@ -68,8 +86,8 @@ namespace game
         {
             if (inputText.length() > 0)
             {
-                OWL::Message msg(inputText);
-                send(msg);
+
+                send(inputText);
                 inputText = "";
             }
         }
@@ -157,7 +175,7 @@ namespace game
     {
     public:
         StartScreen(const std::shared_ptr<OWL::MessageBus> msgBus, const std::shared_ptr<OWL::Draw> draw, int x, int y, int w, int h)
-            : Screen(msgBus, draw, x, y, w, h), surface{draw->loadFromFile("../src/OWL/pixl.png")} {}
+            : Screen(msgBus, draw, x, y, w, h, "StartScreen"), surface{draw->loadFromFile("../src/OWL/pixl.png")} {}
 
         void update()
         {

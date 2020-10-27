@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SDL2/SDL.h>
+#include <iostream>
 #include <stdio.h>
 #include <string>
 #include <functional>
@@ -18,8 +19,8 @@ namespace OWL
     class Message
     {
     public:
-        Message(const std::string msg)
-            : messageEvent{msg}, timestamp{SDL_GetTicks()} {}
+        Message(const std::string msg, const std::vector<std::string> params)
+            : messageEvent{msg}, timestamp{SDL_GetTicks()}, messageParameters{params} {}
 
         std::string getMessage()
         {
@@ -29,10 +30,15 @@ namespace OWL
         {
             return timestamp;
         }
+        std::vector<std::string> getParameters()
+        {
+            return messageParameters;
+        }
 
     private:
         std::string messageEvent;
         uint32_t timestamp;
+        std::vector<std::string> messageParameters;
     };
 
     /**
@@ -68,6 +74,7 @@ namespace OWL
         void sendMessage(Message msg)
         {
             messages.push(msg);
+            std::cout << msg.getMessage() << std::endl;
         }
 
         /// @brief Notify will send all the messages in the queue to the receivers. FIFO.
@@ -96,9 +103,10 @@ namespace OWL
     class BusNode
     {
     public:
-        BusNode(std::shared_ptr<MessageBus> msgBus) : messageBus{msgBus}
+        BusNode(std::shared_ptr<MessageBus> msgBus, std::string name = "unnamed BusNode") : messageBus{msgBus}
         {
             messageBus->addReceiver(this->getNotifyFunc());
+            send(name + " created.");
         }
 
         virtual void update(){};
@@ -115,13 +123,13 @@ namespace OWL
             return messageListener;
         }
 
-        void send(Message msg)
+        void send(std::string msg, std::vector<std::string> params = std::vector<std::string>())
         {
-            messageBus->sendMessage(msg);
+            messageBus->sendMessage(Message(msg, params));
         }
 
         // This is called when MessageBus sends messages out.
-        virtual void onNotify(Message msg) {}
+        virtual void onNotify(Message msg, std::vector<std::string> params = std::vector<std::string>()) {}
     };
 
 } // namespace OWL

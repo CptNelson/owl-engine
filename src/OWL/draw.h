@@ -7,6 +7,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include "msg.h"
 #include "utils.h"
 
 //==============================================================================
@@ -17,11 +18,11 @@ namespace OWL
      * @details
      * @param window reference to SDL_Window instace
      */
-    class Draw
+    class Draw : public BusNode
     {
     public:
         //==============================================================================
-        Draw(SDL_Window *window);
+        Draw(const std::shared_ptr<MessageBus> msgBus, SDL_Window *window);
         ~Draw(){};
         //==============================================================================
 
