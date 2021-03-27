@@ -34,6 +34,14 @@ namespace OWL
         {
             return messageParameters[i];
         }
+        bool isCommand()
+        {
+            char token = ':';
+            if (messageParameters[0].at(0) == token)
+                return true;
+            else
+                return false;
+        }
 
     private:
         uint32_t timestamp;

@@ -202,4 +202,48 @@ namespace game
         std::shared_ptr<SDL_Texture> imageTexture = nullptr;
         int tw, th; // texture width and height
     };
+
+    class TestScreen : public OWL::Screen
+    {
+    public:
+        TestScreen(const std::shared_ptr<OWL::MessageBus> msgBus, const std::shared_ptr<OWL::Draw> draw, int x, int y, int w, int h)
+            : Screen(msgBus, draw, x, y, w, h, "TestScreen") {}
+
+        void update()
+        {
+            draw->createEmptyTexture(texture, color, x, y, w, h);
+
+            auto text = draw->writeText(textString, {255, 175, 46}, OWL::SCREEN_WIDTH / 2, 100);
+            SDL_QueryTexture(text.get(), NULL, NULL, &tw, &th);
+            draw->createViewport(text.get(), OWL::SCREEN_WIDTH / 2 - tw / 4, 100, tw / 2, th / 2);
+            draw->render(text, 0, 0, tw / 2, th / 2);
+            Screen::update();
+        }
+
+    private:
+        std::shared_ptr<SDL_Surface> surface = nullptr;
+        std::shared_ptr<SDL_Texture> texture = nullptr;
+        SDL_Color color = {0, 0, 0, 255}; // console background color
+        int tw, th;                       // texture width and height
+        std::string textString = "Test";
+
+        void onNotify(OWL::Message msg)
+        {
+            if (msg.isCommand())
+            {
+                if (msg.getParameter(0) == ":map00")
+                    createMap(0);
+            }
+        }
+
+        void createMap(int mapSeed)
+        {
+            int mapArray[32][32];
+
+            for (int x = 0; x < 32; x++)
+                for (int y = 0; y < 32; y++)
+                {
+                }
+        }
+    };
 } // namespace game

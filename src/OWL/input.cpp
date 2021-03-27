@@ -10,6 +10,8 @@
 
 namespace OWL
 {
+    //TODO: add different methods for different game modes
+
     /**
      * Screens are used to create defined views
      * inside the game window. The user can see multiple screens
@@ -31,7 +33,7 @@ namespace OWL
 
             if (e.type == SDL_QUIT)
             {
-                send({"quit_game"});
+                send({"quitgame"});
             }
             else if (e.type == SDL_KEYDOWN)
             {
@@ -40,26 +42,21 @@ namespace OWL
                 case SDLK_c:
                     if (lctrl)
                         send({"inputconsole", "open"});
-                    // console->openConsole(inputText);
                     break;
 
                 case SDLK_BACKSPACE:
                     send({"inputconsole", "backspace"});
-                    //console->backSpace();
                     break;
                 case SDLK_RETURN:
                     send({"inputconsole", "enter"});
-                    //  console->enter();
                     break;
 
                 //scroll up and down messages
                 case SDLK_UP:
                     send({"inputconsole", "moveup"});
-                    // console->moveUp();
                     break;
                 case SDLK_DOWN:
                     send({"inputconsole", "movedown"});
-                    //console->moveDown();
                     break;
 
                 case SDLK_RCTRL:
