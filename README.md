@@ -9,7 +9,6 @@ It is very much work in progress, and will probably stay that way.
 use make to create a game file, and run it with ./game
 
 
-
 ```cpp
 make
 ./game
